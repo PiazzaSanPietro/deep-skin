@@ -132,6 +132,8 @@ ENV/
 env.bak/
 venv.bak/
 __init__.py
+.vscode
+vscode/
 
 # Spyder project settings
 .spyderproject
