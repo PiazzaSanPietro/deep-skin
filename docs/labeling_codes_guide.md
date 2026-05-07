@@ -1,0 +1,163 @@
+# 라벨링 데이터 JSON 코드값 설명
+
+## 1. `info` 섹션
+
+### `skin_type` — 얼굴 피부 타입
+
+| JSON 값 | 의미 | CSV 항목 |
+| :---: | :--- | :--- |
+| **0** | 중성 | `중성` |
+| **1** | 건성 | `건성` |
+| **2** | 심한 건성 | `심한건성` |
+| **3** | 복합 건성 | `복합건성` |
+| **4** | 복합 지성 | `복합지성` |
+| **5** | 지성 | `지성` |
+
+### `sensitive` — 자가 민감 여부
+
+| JSON 값 | 의미 | CSV 항목 |
+| :---: | :--- | :--- |
+| **0** | 민감하지 않음 | `아니오` |
+| **1** | 민감함 | `예` |
+
+---
+
+## 2. `images` 섹션
+
+### `device` — 촬영 장비
+
+| JSON 값 | 의미 | 폴더명 |
+| :---: | :--- | :--- |
+| **0** | 디지털카메라 | `1. 디지털카메라` |
+| **1** | 스마트패드 | `2. 스마트패드` |
+| **2** | 스마트폰 | `3. 스마트폰` |
+
+### `angle` — 촬영 각도
+
+| JSON 값 | 의미 | 파일명 접미사 |
+| :---: | :--- | :--- |
+| **0** | 정면 (Front) | `F` |
+| **1** | 위쪽 (Tilted up) | `Ft` |
+| **2** | 아래쪽 (Tilted down) | `Fb` |
+| **3** | 좌측 15° | `L15` |
+| **4** | 좌측 30° | `L30` |
+| **5** | 우측 15° | `R15` |
+| **6** | 우측 30° | `R30` |
+| **7** | 추가 각도 (스마트패드/스마트폰 전용) | `_07` |
+| **8** | 추가 각도 (스마트패드/스마트폰 전용) | `_08` |
+
+- 디지털카메라(device=0)는 각도 0~6까지 사용.
+- 스마트패드(device=1)와 스마트폰(device=2)은 각도 0~8까지 사용.
+
+### `facepart` — 얼굴 부위 코드
+
+| JSON 값 | 의미 |
+| :---: | :--- |
+| **0** | 전체 얼굴 (Full face) |
+| **1** | 이마 (Forehead) |
+| **2** | 미간 (Glabella) |
+| **3** | 왼쪽 눈가 (Eye area L) |
+| **4** | 오른쪽 눈가 (Eye area R) |
+| **5** | 왼쪽 볼 (Cheek L) |
+| **6** | 오른쪽 볼 (Cheek R) |
+| **7** | 입술 (Lips) |
+| **8** | 턱 (Chin) |
+
+### `bbox` — 얼굴 영역 Bounding Box
+
+`[x, y, w, h]` 형식의 사각형 좌표. (x, y)는 좌상단 기준점, w는 너비, h는 높이.
+
+---
+
+## 3. `annotations` 섹션 — 전문가 진단 등급
+
+모든 진단값은 **0에 가까울수록 양호, 숫자가 클수록 심각**함을 나타내는 정수 등급 척도입니다.
+
+### facepart별 annotation 키와 값 범위
+
+| facepart | 부위 | Annotation 키 | 값 범위 | 의미 |
+| :---: | :--- | :--- | :---: | :--- |
+| 0 | 전체 얼굴 | `acne` | `null` 또는 배열 | 여드름 병변 정보 (아래 별도 설명) |
+| 1 | 이마 | `forehead_pigmentation` | 0~3 | 이마 색소침착 정도 |
+| 1 | 이마 | `forehead_wrinkle` | 0~4 | 이마 주름 정도 |
+| 2 | 미간 | `glabellus_wrinkle` | 0~2 | 미간 주름 정도 |
+| 3 | 왼쪽 눈가 | `l_perocular_wrinkle` | 0~5 | 왼쪽 눈가 주름 정도 |
+| 4 | 오른쪽 눈가 | `r_perocular_wrinkle` | 0~5 | 오른쪽 눈가 주름 정도 |
+| 5 | 왼쪽 볼 | `l_cheek_pigmentation` | 0~5 | 왼쪽 볼 색소침착 정도 |
+| 5 | 왼쪽 볼 | `l_cheek_pore` | 0~5 | 왼쪽 볼 모공 정도 |
+| 6 | 오른쪽 볼 | `r_cheek_pigmentation` | 0~5 | 오른쪽 볼 색소침착 정도 |
+| 6 | 오른쪽 볼 | `r_cheek_pore` | 0~5 | 오른쪽 볼 모공 정도 |
+| 7 | 입술 | `lip_dryness` | 0~4 | 입술 건조함 정도 |
+| 8 | 턱 | `chin_sagging` | 0~5 | 턱 처짐 (이중턱) 정도 |
+
+### 등급 척도 기준 (공통)
+
+| 값 | 의미 |
+| :---: | :--- |
+| **0** | 없음 / 정상 (None) |
+| **1** | 경미 (Mild) |
+| **2** | 보통 (Moderate) |
+| **3** | 심함 (Severe) |
+| **4** | 매우 심함 (Very Severe) |
+| **5** | 극심함 (Extremely Severe) — 일부 항목만 해당 |
+
+> 항목별 최대값이 다르므로 주의:
+> - `forehead_pigmentation`: 최대 3
+> - `forehead_wrinkle`: 최대 4
+> - `glabellus_wrinkle`: 최대 2
+> - `lip_dryness`: 최대 4
+> - `l_perocular_wrinkle`, `r_perocular_wrinkle`: 최대 5
+> - `l_cheek_pigmentation`, `r_cheek_pigmentation`: 최대 5
+> - `l_cheek_pore`, `r_cheek_pore`: 최대 5
+> - `chin_sagging`: 최대 5
+
+### `acne` (여드름) — facepart=0 전용
+
+- 값이 `null`이면 여드름 없음.
+- 값이 배열이면 각 요소는 `{"name": "papule", "points": [x, y]}` 형태.
+  - `name`: 항상 `"papule"` (구진, 솟아오른 여드름)
+  - `points`: 해당 이미지 내 여드름 위치의 픽셀 좌표 `[x, y]`
+
+---
+
+## 4. `equipment` 섹션 — 장비 측정값
+
+장비 측정 항목은 `{부위}_{측정항목}` 형식의 키를 가집니다.
+
+### 수분 (Moisture)
+
+- `{부위}_moisture`: 해당 부위의 피부 수분 측정값. 단위는 임의 단위(A.U.), 값이 높을수록 수분 많음.
+- 부위: `forehead`(이마), `l_cheek`(왼쪽 볼), `r_cheek`(오른쪽 볼), `chin`(턱)
+
+### 탄력 (Elasticity)
+
+- `{부위}_elasticity_R0` ~ `R9`: 피부 탄력 파라미터 (R0~R9), 각각 특정 탄력 특성.
+- `{부위}_elasticity_Q0` ~ `Q3`: 피부 탄력 Q-파라미터.
+- 부위: `forehead`, `l_cheek`, `r_cheek`, `chin`
+
+### 주름 (Wrinkle) — 장비 측정
+
+- `wrinkle_{부위}_Ra`, `_Rq`, `_Rmax`, `_R3z`, `_Rt`, `_Rz=Rtm`, `_Rp`, `_Rv`: 거칠기 파라미터.
+- 부위: `l_eye`(왼쪽 눈가), `r_eye`(오른쪽 눈가)
+- 값이 클수록 주름이 깊고 거침.
+
+### 스팟/색소 (Pigmentation Spot)
+
+- `spot_count_frontal`: 정면 기준 색소성 스팟 개수.
+
+### 모공 (Pore)
+
+- `pore_count_r_cheek`: 오른쪽 볼 모공 개수.
+- `pore_count_l_cheek`: 왼쪽 볼 모공 개수.
+
+---
+
+## 참고: CSV 파일과의 관계
+
+| JSON 필드 | CSV 파일 | CSV 컬럼명 |
+| :--- | :--- | :--- |
+| `info.skin_type` | `meta_data.csv` | `얼굴피부타입` |
+| `info.sensitive` | `meta_data.csv` | `자가민감여부` |
+| `info.gender` | `meta_data.csv` | `성별` |
+| `info.age` | `meta_data.csv` | `나이` |
+| `equipment.*` | `measurement_data.csv` | 각 측정 항목 컬럼 |
