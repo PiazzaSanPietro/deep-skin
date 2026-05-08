@@ -103,6 +103,31 @@ face_skin_project/
 
 ---
 
+## 4-1. 촬영 각도(angle) 필터링 기준
+
+`images.angle` 코드:
+
+| 값 | 의미 |
+|---:|---|
+| 0 | 정면 |
+| 1 | 위 |
+| 2 | 아래 |
+| 3 | L15° (왼쪽 15도) |
+| 4 | L30° (왼쪽 30도) |
+| 5 | R15° (오른쪽 15도) |
+| 6 | R30° (오른쪽 30도) |
+
+볼 부위는 반대 방향 극단 측면에서 해당 볼이 가려지므로 제외한다.
+
+| facepart | 사용 각도 | 제외 각도 | 제외 이유 |
+|---:|---|---|---|
+| 5 (왼볼) | 0, 1, 2, 3, 4 | R15°(5), R30°(6) | 얼굴이 오른쪽으로 돌면 왼볼이 가려짐 |
+| 6 (오른볼) | 0, 1, 2, 5, 6 | L15°(3), L30°(4) | 얼굴이 왼쪽으로 돌면 오른볼이 가려짐 |
+
+위(1), 아래(2), L30°(4), R30°(6)은 조명 및 각도 변화로 인한 자연스러운 데이터 다양성을 제공하므로 포함한다.
+
+---
+
 ## 5. JSON에서 사용할 필드
 
 ### 5.1. info
@@ -300,12 +325,15 @@ data/cropped/train/r_cheek/0002_0002_01_F_06.jpg,data/raw/aihub_skin/Training/01
 1. raw 데이터 루트 경로를 입력받는다.
 2. Training/TL, Validation/VL 하위의 모든 JSON을 탐색한다.
 3. images.facepart가 5 또는 6인 JSON만 필터링한다.
-4. info.filename으로 원본 이미지를 찾는다.
-5. images.bbox를 기준으로 볼 영역을 crop한다.
-6. facepart에 따라 l_cheek 또는 r_cheek 폴더에 저장한다.
-7. annotations에서 pore/pigmentation 라벨을 추출한다.
-8. crop 결과와 메타정보를 CSV로 저장한다.
-9. 실패한 파일은 error log로 저장한다.
+4. images.angle을 기준으로 볼 부위별 유효 각도만 필터링한다.
+   - facepart=5 (왼볼): angle R15°(5), R30°(6) 제외
+   - facepart=6 (오른볼): angle L15°(3), L30°(4) 제외
+5. info.filename으로 원본 이미지를 찾는다.
+6. images.bbox를 기준으로 볼 영역을 crop한다.
+7. facepart에 따라 l_cheek 또는 r_cheek 폴더에 저장한다.
+8. annotations에서 pore/pigmentation 라벨을 추출한다.
+9. crop 결과와 메타정보를 CSV로 저장한다.
+10. 실패한 파일은 error log로 저장한다.
 ```
 
 ---
@@ -413,3 +441,58 @@ scripts/build_cheek_crop_dataset.py
 9. crop 샘플 육안 검증
 10. 학습 코드에서 CSV를 읽어 Dataset 구성
 ```
+# 현재 구현 업데이트
+
+`notebooks/jh/crop.py` 아래의 현재 활성 crop 코드는 `A` baseline을 따른다.
+
+- 왼쪽 볼은 `F / Ft / Fb / L15`를 유지한다.
+- 오른쪽 볼은 `F / Ft / Fb / R15`를 유지한다.
+- `L30 / R30`은 기본 crop 데이터셋에서 제외한다.
+
+현재 crop 단계에는 다음도 포함되어 있다.
+
+- 각도 인식 bbox margin
+- 얇은 측면 crop에 대한 품질 필터링
+- 현재 테스트 파이프라인용 metadata CSV 생성
+
+주요 구현 파일:
+
+```text
+notebooks/jh/crop.py
+notebooks/jh/test/test_cheek_crop.py
+
+함께 참고:
+
+- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+
+부록: 현재 코드 Override
+
+notebooks/jh/crop.py 아래의 현재 구현은 crop 파이프라인의 기준으로 취급해야 한다.
+
+이 문서의 이전 섹션과 비교했을 때 중요한 override 사항:
+
+활성 baseline 각도:
+왼쪽 볼: F / Ft / Fb / L15
+오른쪽 볼: F / Ft / Fb / R15
+L30 / R30은 기본 데이터셋에서 제외한다.
+crop 단계는 다음을 적용한다.
+각도 인식 bbox margin
+측면 샘플에 대한 thin-crop 품질 필터링
+활성 구현 경로:
+notebooks/jh/crop.py
+notebooks/jh/test/test_cheek_crop.py
+
+현재 smoke-test 출력은 다음 경로에 저장된다.
+
+data/cropped/test/train/l_cheek/*.jpg
+data/cropped/test/train/r_cheek/*.jpg
+data/cropped/test/val/l_cheek/*.jpg
+data/cropped/test/val/r_cheek/*.jpg
+data/processed/test/cheek_train_metadata_test.csv
+data/processed/test/cheek_val_metadata_test.csv
+results/test/crop_samples/
+results/test/crop_error_log.csv
+
+최신 통합 요약은 다음을 참고한다.:
+
+- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)

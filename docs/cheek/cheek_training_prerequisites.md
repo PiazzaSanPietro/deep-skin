@@ -547,3 +547,103 @@ recommend.py
 10. predict.py에서 예측 결과 JSON 반환
 11. 추후 recommend.py 또는 DB 기반 추천 모듈과 연결
 ```
+# Current Implementation Update
+
+`notebooks/jh` 하위의 현재 코드는 단순한 파이프라인 스모크 테스트뿐만 아니라 실제 학습이 가능한 상태입니다.
+
+구현된 항목들:
+
+- `model.py`
+  - `checkpoints/pretrained`에서 로컬 사전 학습된 ResNet-50 로드
+  - 백본 동결(backbone freeze) 옵션
+- `train.py`
+  - 일반적인 학습 진입점
+  - `latest` 및 `best` 체크포인트 저장
+  - `latest`, `best` 또는 명시적 경로로부터 학습 재개
+- `dataset.py`
+  - 종횡비를 유지하는 리사이즈 및 정사각형 패딩
+- `crop.py`
+  - A-baseline 각도 필터링
+  - 마진 및 얇은 크롭(thin-crop) 품질 필터링
+
+현재 학습 명령:
+
+```text
+python notebooks/jh/train.py --target pore
+python notebooks/jh/train.py --target pigmentation
+python notebooks/jh/train.py --target pore --freeze-backbone
+python notebooks/jh/train.py --target pore --resume latest
+```
+
+Current checkpoint layout:
+
+```text
+checkpoints/pretrained/resnet50-0676ba61.pth
+checkpoints/trained/<target>_latest.pth
+checkpoints/trained/<target>_best.pth
+```
+
+For the latest operational summary, see:
+
+- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+# Appendix: Current Code Override
+
+notebooks/jh 하위의 현재 구현은 학습 스택의 실질적인 기준으로 간주되어야 합니다.
+
+이 문서의 이전 섹션들과 비교하여 중요한 우선 적용 사항은 다음과 같습니다:
+
+- the live code is currently under:
+  - `notebooks/jh/crop.py`
+  - `notebooks/jh/dataset.py`
+  - `notebooks/jh/model.py`
+  - `notebooks/jh/train.py`
+  - `notebooks/jh/test/test_cheek_crop.py`
+  - `notebooks/jh/test/test_cheek_pipeline.py`
+- `predict.py` is not implemented yet under `notebooks/jh`
+- `utils/config.py`, `utils/paths.py`, `utils/seed.py` are not split into
+  separate files; equivalent logic currently lives inside `train.py`
+
+이미 구현된 현재 학습 기능들:
+
+- local pretrained ResNet-50 load from:
+  - `checkpoints/pretrained/resnet50-0676ba61.pth`
+- backbone freeze option
+- `latest` checkpoint save
+- `best` checkpoint save
+- resume training from:
+  - `latest`
+  - `best`
+  - explicit checkpoint path
+
+현재 학습 명령
+
+```text
+python notebooks/jh/train.py --target pore
+python notebooks/jh/train.py --target pigmentation
+python notebooks/jh/train.py --target pore --freeze-backbone
+python notebooks/jh/train.py --target pore --resume latest
+```
+
+현재 체크포인트 레이아웃:
+
+```text
+checkpoints/pretrained/resnet50-0676ba61.pth
+checkpoints/pretrained/dinov3_vitl16_pretrain_lvd1689m-8aa4cbdd.pth
+checkpoints/trained/<target>_latest.pth
+checkpoints/trained/<target>_best.pth
+```
+
+현재 이미지 전처리:
+
+- aspect-ratio-preserving resize
+- square padding
+- ImageNet normalization
+
+현재 기본 크롭 정책:
+
+- left cheek: `F / Ft / Fb / L15`
+- right cheek: `F / Ft / Fb / R15`
+
+최신 통합 요약은 다음을 참조하십시오:
+
+- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)

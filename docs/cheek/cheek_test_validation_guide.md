@@ -443,3 +443,70 @@ DINOv3 ViT-L/16은 초기에 사용하지 않는다.
 따라서 초기 테스트에서는 높은 accuracy를 목표로 하지 않고, 데이터 로딩부터 모델 학습까지 오류 없이 연결되는지 확인한다.
 
 테스트가 통과되면 전체 데이터 기준으로 ResNet-50 학습을 진행하고, 이후 성능 개선 단계에서 DINOv3 ViT-L/16을 적용한다.
+
+# 현재 구현 업데이트
+
+`notebooks/jh` 하위의 현재 검증 흐름이 실행 중인 코드와 일치하도록 업데이트되었습니다.
+
+주요 사항:
+
+- 크롭 검증은 이제 `A` 베이스라인 각도 세트를 가정합니다:
+  - 왼쪽 볼: `F / Ft / Fb / L15`
+  - 오른쪽 볼: `F / Ft / Fb / R15`
+- 이미지 파이프라인은 종횡비를 유지하는 리사이즈와 정사각형 패딩을 사용합니다.
+- 사전 학습된 ResNet-50 가중치는 다음에서 로드됩니다:
+  - `checkpoints/pretrained/resnet50-0676ba61.pth`
+- 테스트 체크포인트는 다음 아래에 기록됩니다:
+  - `checkpoints/trained/`
+
+현재 스모크 테스트 진입점:
+
+```text
+python notebooks/jh/test/test_cheek_crop.py
+python notebooks/jh/test/test_cheek_pipeline.py --target pore
+python notebooks/jh/test/test_cheek_pipeline.py --target pigmentation
+```
+
+최신 운영 요약은 다음을 참조하십시오:
+
+- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+
+# 부록: 현재 코드 우선 적용 사항
+
+`notebooks/jh` 하위의 현재 검증 흐름이 실행 중인 코드와 일치하도록 업데이트되었습니다.
+
+Key points:
+
+- 크롭 검증은 이제 `A` 베이스라인 각도 세트를 가정합니다:
+  - 왼쪽 볼: `F / Ft / Fb / L15`
+  - 오른쪽 볼: `F / Ft / Fb / R15`
+- 이미지 파이프라인은 종횡비를 유지하는 리사이즈와 정사각형 패딩을 사용합니다.
+- 사전 학습된 ResNet-50 가중치는 다음에서 로드됩니다:
+  - `checkpoints/pretrained/resnet50-0676ba61.pth`
+- 테스트 체크포인트는 다음 아래에 기록됩니다:
+  - `checkpoints/trained/`
+
+Current smoke-test entrypoints:
+
+```text
+python notebooks/jh/test/test_cheek_crop.py
+python notebooks/jh/test/test_cheek_pipeline.py --target pore
+python notebooks/jh/test/test_cheek_pipeline.py --target pigmentation
+```
+
+Current smoke-test outputs:
+
+```text
+data/cropped/test/train/l_cheek/*.jpg
+data/cropped/test/train/r_cheek/*.jpg
+data/cropped/test/val/l_cheek/*.jpg
+data/cropped/test/val/r_cheek/*.jpg
+data/processed/test/cheek_train_metadata_test.csv
+data/processed/test/cheek_val_metadata_test.csv
+results/test/crop_samples/
+results/test/crop_error_log.csv
+```
+
+For the latest consolidated summary, see:
+
+- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
