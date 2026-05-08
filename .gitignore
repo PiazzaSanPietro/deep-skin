@@ -132,6 +132,8 @@ ENV/
 env.bak/
 venv.bak/
 __init__.py
+.vscode
+vscode/
 
 # Spyder project settings
 .spyderproject
@@ -182,6 +184,7 @@ pyrightconfig.json
 # data 파일은 업로드하지 않음
 data/raw/*
 data/processed/*
+data/cropped/*
 
 # 단, 폴더 유지용 .gitkeep은 업로드
 !data/raw/.gitkeep

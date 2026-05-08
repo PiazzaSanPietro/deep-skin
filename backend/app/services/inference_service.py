@@ -1,0 +1,71 @@
+from app.schemas.image_upload import InferenceResult, PartResult
+
+
+def run_inference(image_path: str) -> InferenceResult:
+    """Mock inference. Replace with real model call in production."""
+    return InferenceResult(
+        model_name="mock_skin_model",
+        model_version="0.0.1",
+        parts=[
+            PartResult(
+                raw_part_name="left_cheek",
+                display_part_name="볼",
+                metric_name="pore",
+                metric_display_name="모공",
+                issue_type="pore",
+                grade_value=2,
+                severity="moderate",
+                confidence_score=0.82,
+            ),
+            PartResult(
+                raw_part_name="right_cheek",
+                display_part_name="볼",
+                metric_name="pore",
+                metric_display_name="모공",
+                issue_type="pore",
+                grade_value=1,
+                severity="mild",
+                confidence_score=0.79,
+            ),
+            PartResult(
+                raw_part_name="forehead",
+                display_part_name="이마",
+                metric_name="wrinkle",
+                metric_display_name="주름",
+                issue_type="wrinkle",
+                grade_value=0,
+                severity="normal",
+                confidence_score=0.91,
+            ),
+            PartResult(
+                raw_part_name="left_eye",
+                display_part_name="눈가",
+                metric_name="wrinkle",
+                metric_display_name="주름",
+                issue_type="wrinkle",
+                grade_value=3,
+                severity="severe",
+                confidence_score=0.88,
+            ),
+            PartResult(
+                raw_part_name="lips",
+                display_part_name="입술",
+                metric_name="dryness",
+                metric_display_name="건조",
+                issue_type="dryness",
+                grade_value=1,
+                severity="mild",
+                confidence_score=0.77,
+            ),
+            PartResult(
+                raw_part_name="chin",
+                display_part_name="턱",
+                metric_name="sagging",
+                metric_display_name="처짐",
+                issue_type="sagging",
+                grade_value=2,
+                severity="moderate",
+                confidence_score=0.74,
+            ),
+        ],
+    )
