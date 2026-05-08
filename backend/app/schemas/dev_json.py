@@ -1,6 +1,6 @@
 from typing import Any, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class JsonItemInfo(BaseModel):
@@ -48,6 +48,18 @@ class DevJsonUploadRequest(BaseModel):
 
 
 class DevJsonUploadResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "session_id": 1,
+                "saved_json_count": 1,
+                "created_result_count": 4,
+                "status": "completed",
+                "message": "개발용 JSON 분석 결과가 저장되었습니다.",
+            }
+        }
+    )
+
     session_id: int
     saved_json_count: int
     created_result_count: int

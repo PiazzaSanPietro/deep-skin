@@ -28,7 +28,12 @@ class SignupRequest(BaseModel):
 
 
 class SignupResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {"id": 1, "email": "test@example.com", "name": "테스트"}
+        },
+    )
 
     id: int
     email: str
@@ -47,6 +52,16 @@ class LoginRequest(BaseModel):
 
 
 class LoginResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "access_token": "<JWT access_token>",
+                "refresh_token": "<JWT refresh_token>",
+                "token_type": "bearer",
+            }
+        }
+    )
+
     access_token: str
     refresh_token: str
     token_type: str = "bearer"
@@ -63,9 +78,19 @@ class TokenRefreshRequest(BaseModel):
 
 
 class TokenRefreshResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {"access_token": "<새로 발급된 JWT access_token>", "token_type": "bearer"}
+        }
+    )
+
     access_token: str
     token_type: str = "bearer"
 
 
 class LogoutResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"message": "로그아웃되었습니다."}}
+    )
+
     message: str = "로그아웃되었습니다."
