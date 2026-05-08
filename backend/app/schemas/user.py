@@ -51,7 +51,21 @@ class UserProfileUpsertRequest(BaseModel):
 
 
 class UserProfileResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra={
+            "example": {
+                "age": 28,
+                "birth_year": 1998,
+                "gender": "F",
+                "skin_type": 3,
+                "sensitive": 1,
+                "main_concerns": ["wrinkle", "pore"],
+                "allergy_ingredients": ["retinol"],
+                "preferred_product_types": ["세럼", "크림"],
+            }
+        },
+    )
 
     age: Optional[int] = None
     birth_year: Optional[int] = None
@@ -64,5 +78,23 @@ class UserProfileResponse(BaseModel):
 
 
 class UserProfileUpdateResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "message": "프로필이 저장되었습니다.",
+                "profile": {
+                    "age": 28,
+                    "birth_year": 1998,
+                    "gender": "F",
+                    "skin_type": 3,
+                    "sensitive": 1,
+                    "main_concerns": ["wrinkle", "pore"],
+                    "allergy_ingredients": ["retinol"],
+                    "preferred_product_types": ["세럼", "크림"],
+                },
+            }
+        }
+    )
+
     message: str
     profile: UserProfileResponse
