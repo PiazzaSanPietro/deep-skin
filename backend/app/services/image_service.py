@@ -109,7 +109,12 @@ async def upload_image(
         image_record.upload_status = "processing"
         db.commit()
 
-        result: InferenceResult = inference_service.run_inference(str(file_path))
+        result: InferenceResult = inference_service.run_inference(
+            str(file_path),
+            session_id=session_id,
+            user_id=user_id,
+            image_id=image_record.id,
+        )
 
         # 이 세션의 기존 이미지 기반 결과 삭제 (재업로드 중복 방지)
         db.query(SkinPartResult).filter(
