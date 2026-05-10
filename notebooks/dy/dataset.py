@@ -12,7 +12,12 @@ from PIL import Image, ImageOps
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-from task_config import CLASSIFICATION_TASKS, REGRESSION_TARGETS
+from task_config import (
+    CLASSIFICATION_TASKS,
+    REGRESSION_TARGETS,
+    ClassificationTask,
+    map_grade,
+)
 
 
 class ResizeAndPad:
@@ -50,6 +55,8 @@ def get_transforms(
     affine_prob: float = 0.35,
     affine_degrees: float = 4.0,
     affine_translate: float = 0.015,
+    affine_scale_min: float = 0.98,
+    affine_scale_max: float = 1.02,
     blur_prob: float = 0.12,
     erasing_prob: float = 0.10,
 ) -> transforms.Compose:
@@ -70,7 +77,7 @@ def get_transforms(
                         transforms.RandomAffine(
                             degrees=affine_degrees,
                             translate=(affine_translate, affine_translate),
-                            scale=(0.98, 1.02),
+                            scale=(affine_scale_min, affine_scale_max),
                             fill=fill,
                         )
                     ],
@@ -116,11 +123,15 @@ class ForeheadGlabellaDataset(Dataset):
         transform: Any | None = None,
         regression_stats: dict[str, dict[str, float]] | None = None,
         return_metadata: bool = False,
+        tasks: tuple[ClassificationTask, ...] = CLASSIFICATION_TASKS,
+        grade_scheme: str = "original",
     ):
         self.csv_path = Path(csv_path)
         self.transform = transform
         self.regression_stats = regression_stats
         self.return_metadata = return_metadata
+        self.tasks = tasks
+        self.grade_scheme = grade_scheme
 
         df = pd.read_csv(self.csv_path)
         if "image_path" not in df.columns:
@@ -132,12 +143,12 @@ class ForeheadGlabellaDataset(Dataset):
 
     def _classification_targets(self, row: pd.Series) -> torch.Tensor:
         values: list[int] = []
-        for task in CLASSIFICATION_TASKS:
+        for task in self.tasks:
             raw_value = row.get(task.column)
             if pd.isna(raw_value) or raw_value == "":
                 values.append(-100)
             else:
-                value = int(raw_value)
+                value = map_grade(int(raw_value), self.grade_scheme)
                 if value < 0 or value >= task.num_classes:
                     raise ValueError(
                         f"{task.column} must be in 0..{task.num_classes - 1}: {value}"

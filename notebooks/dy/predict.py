@@ -14,7 +14,7 @@ from PIL import Image
 from dataset import get_transforms
 from model import get_model
 from recommendation import build_report
-from task_config import CLASSIFICATION_TASKS, REGRESSION_TARGETS
+from task_config import CLASSIFICATION_TASKS, REGRESSION_TARGETS, get_classification_tasks
 from xai import save_gradcam_overlay
 
 
@@ -37,11 +37,14 @@ def _load_checkpoint(path: Path, device: torch.device) -> dict[str, Any]:
 
 def _build_model(checkpoint: dict[str, Any], device: torch.device) -> torch.nn.Module:
     config = checkpoint.get("config", {})
+    grade_scheme = config.get("grade_scheme", checkpoint.get("grade_scheme", "original"))
+    tasks = get_classification_tasks(str(grade_scheme))
     model = get_model(
         weights="none",
         projection_dim=int(config.get("projection_dim", 512)),
         dropout_p=float(config.get("dropout_p", 0.30)),
         freeze_backbone=False,
+        tasks=tasks,
     )
     model.load_state_dict(checkpoint["model_state_dict"])
     model.to(device)
@@ -68,6 +71,8 @@ def predict(args: argparse.Namespace) -> dict[str, Any]:
     checkpoint = _load_checkpoint(args.checkpoint, device)
     model = _build_model(checkpoint, device)
     config = checkpoint.get("config", {})
+    grade_scheme = str(config.get("grade_scheme", checkpoint.get("grade_scheme", "original")))
+    tasks = get_classification_tasks(grade_scheme)
     image_size = args.image_size or int(config.get("image_size", 224))
 
     original = Image.open(args.image).convert("RGB")
@@ -78,7 +83,7 @@ def predict(args: argparse.Namespace) -> dict[str, Any]:
         outputs = model(image_tensor)
 
     predictions: dict[str, dict[str, int | float]] = {}
-    for task in CLASSIFICATION_TASKS:
+    for task in tasks:
         if task.part_name != args.part:
             continue
         probs = F.softmax(outputs["cls"][task.name], dim=1)[0]
@@ -95,7 +100,7 @@ def predict(args: argparse.Namespace) -> dict[str, Any]:
             checkpoint.get("regression_stats", {}),
         )
 
-    report = build_report(predictions, regression)
+    report = build_report(predictions, regression, grade_scheme=grade_scheme)
 
     if args.gradcam_dir is not None:
         gradcam_paths: dict[str, str] = {}

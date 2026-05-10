@@ -17,11 +17,11 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, WeightedRandomSampler
 
 from dataset import ForeheadGlabellaDataset, get_transforms
 from model import DEFAULT_LOCAL_RESNET50, get_model
-from task_config import CLASSIFICATION_TASKS, REGRESSION_TARGETS
+from task_config import CLASSIFICATION_TASKS, REGRESSION_TARGETS, get_classification_tasks, map_grade
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -52,14 +52,54 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--projection-dim", type=int, default=512)
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--seed", type=int, default=20260510)
+    parser.add_argument(
+        "--grade-scheme",
+        choices=["original", "three"],
+        default="original",
+        help="Use original labels or grouped low/middle/high 3-class labels.",
+    )
     parser.add_argument("--label-smoothing", type=float, default=0.05)
+    parser.add_argument(
+        "--class-weight-power",
+        type=float,
+        default=1.0,
+        help="Apply class weights as weight ** power. Lower values reduce rare-class overcorrection.",
+    )
     parser.add_argument("--cls-loss-weight", type=float, default=1.0)
     parser.add_argument("--reg-loss-weight", type=float, default=0.35)
+    parser.add_argument(
+        "--ordinal-loss-weight",
+        type=float,
+        default=0.0,
+        help="Add a small order-aware loss to penalize farther grade mistakes more strongly.",
+    )
     parser.add_argument("--scheduler-factor", type=float, default=0.5)
     parser.add_argument("--scheduler-patience", type=int, default=5)
     parser.add_argument("--scheduler-min-lr", type=float, default=1e-6)
     parser.add_argument("--early-stopping-patience", type=int, default=10)
     parser.add_argument("--early-stopping-min-delta", type=float, default=1e-4)
+    parser.add_argument("--flip-prob", type=float, default=0.25)
+    parser.add_argument("--jitter-brightness", type=float, default=0.18)
+    parser.add_argument("--jitter-contrast", type=float, default=0.18)
+    parser.add_argument("--jitter-saturation", type=float, default=0.08)
+    parser.add_argument("--affine-prob", type=float, default=0.35)
+    parser.add_argument("--affine-degrees", type=float, default=4.0)
+    parser.add_argument("--affine-translate", type=float, default=0.015)
+    parser.add_argument("--affine-scale-min", type=float, default=0.98)
+    parser.add_argument("--affine-scale-max", type=float, default=1.02)
+    parser.add_argument("--blur-prob", type=float, default=0.12)
+    parser.add_argument("--erasing-prob", type=float, default=0.10)
+    parser.add_argument(
+        "--weighted-sampler",
+        action="store_true",
+        help="Oversample rare grade rows. Repeated minority rows receive fresh random augmentation.",
+    )
+    parser.add_argument(
+        "--sampler-power",
+        type=float,
+        default=0.5,
+        help="Class-frequency inverse power for weighted sampler. 0.5 is gentler than full inverse frequency.",
+    )
     parser.add_argument(
         "--weights",
         choices=["local_or_none", "local", "torchvision", "none"],
@@ -68,6 +108,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--pretrained-path", type=Path, default=DEFAULT_LOCAL_RESNET50)
     parser.add_argument("--freeze-backbone", action="store_true")
+    parser.add_argument(
+        "--freeze-until",
+        choices=["none", "stem", "layer1", "layer2", "layer3"],
+        default="none",
+        help="Freeze early ResNet stages. Use layer2/layer3 to reduce overfitting.",
+    )
     parser.add_argument("--checkpoint-dir", type=Path, default=None)
     parser.add_argument("--run-name", type=str, default="")
     parser.add_argument("--resume", type=Path, default=None)
@@ -123,18 +169,58 @@ def build_dataloaders(
 ) -> tuple[DataLoader, DataLoader]:
     train_ds = ForeheadGlabellaDataset(
         csv_path=args.train_csv,
-        transform=get_transforms(image_size=args.image_size, split="train"),
+        transform=get_transforms(
+            image_size=args.image_size,
+            split="train",
+            flip_prob=args.flip_prob,
+            jitter_brightness=args.jitter_brightness,
+            jitter_contrast=args.jitter_contrast,
+            jitter_saturation=args.jitter_saturation,
+            affine_prob=args.affine_prob,
+            affine_degrees=args.affine_degrees,
+            affine_translate=args.affine_translate,
+            affine_scale_min=args.affine_scale_min,
+            affine_scale_max=args.affine_scale_max,
+            blur_prob=args.blur_prob,
+            erasing_prob=args.erasing_prob,
+        ),
         regression_stats=regression_stats,
+        tasks=CLASSIFICATION_TASKS,
+        grade_scheme=args.grade_scheme,
     )
     val_ds = ForeheadGlabellaDataset(
         csv_path=args.val_csv,
         transform=get_transforms(image_size=args.image_size, split="val"),
         regression_stats=regression_stats,
+        tasks=CLASSIFICATION_TASKS,
+        grade_scheme=args.grade_scheme,
     )
+    sampler = None
+    shuffle = True
+    if args.weighted_sampler:
+        sample_weights = build_sample_weights(
+            args.train_csv,
+            sampler_power=args.sampler_power,
+            grade_scheme=args.grade_scheme,
+        )
+        sampler = WeightedRandomSampler(
+            weights=sample_weights,
+            num_samples=len(sample_weights),
+            replacement=True,
+        )
+        shuffle = False
+        logger.info(
+            "weighted sampler enabled: min=%.4f max=%.4f mean=%.4f",
+            float(sample_weights.min()),
+            float(sample_weights.max()),
+            float(sample_weights.mean()),
+        )
+
     train_loader = DataLoader(
         train_ds,
         batch_size=args.batch_size,
-        shuffle=True,
+        shuffle=shuffle,
+        sampler=sampler,
         num_workers=args.num_workers,
         pin_memory=torch.cuda.is_available(),
     )
@@ -148,11 +234,55 @@ def build_dataloaders(
     return train_loader, val_loader
 
 
-def compute_class_weights(csv_path: Path, device: torch.device) -> dict[str, torch.Tensor]:
+def build_sample_weights(
+    csv_path: Path,
+    sampler_power: float = 0.5,
+    grade_scheme: str = "original",
+) -> torch.Tensor:
+    """Build per-row sampler weights from available multitask labels."""
+    df = pd.read_csv(csv_path)
+    row_weights = np.ones(len(df), dtype=np.float64)
+
+    for task in CLASSIFICATION_TASKS:
+        labels = pd.to_numeric(df.get(task.column), errors="coerce")
+        valid = labels.notna()
+        if not valid.any():
+            continue
+
+        mapped_labels = pd.Series(np.nan, index=df.index, dtype="float64")
+        mapped_labels.loc[valid] = labels.loc[valid].astype(int).map(
+            lambda grade: map_grade(int(grade), grade_scheme)
+        )
+        counts = mapped_labels.loc[valid].astype(int).value_counts().to_dict()
+        task_weights = np.ones(len(df), dtype=np.float64)
+        for label, count in counts.items():
+            if count > 0:
+                task_weights[mapped_labels == label] = float(count) ** (-sampler_power)
+
+        positive = task_weights[valid]
+        if positive.size > 0 and positive.mean() > 0:
+            task_weights[valid] = positive / positive.mean()
+        row_weights = np.maximum(row_weights, task_weights)
+
+    row_weights = row_weights / max(row_weights.mean(), 1e-8)
+    return torch.tensor(row_weights, dtype=torch.double)
+
+
+def compute_class_weights(
+    csv_path: Path,
+    device: torch.device,
+    class_weight_power: float = 1.0,
+    grade_scheme: str = "original",
+) -> dict[str, torch.Tensor]:
     df = pd.read_csv(csv_path)
     weights: dict[str, torch.Tensor] = {}
     for idx, task in enumerate(CLASSIFICATION_TASKS):
-        values = pd.to_numeric(df.get(task.column), errors="coerce").dropna().astype(int)
+        values = (
+            pd.to_numeric(df.get(task.column), errors="coerce")
+            .dropna()
+            .astype(int)
+            .map(lambda grade: map_grade(int(grade), grade_scheme))
+        )
         counts = values.value_counts().reindex(range(task.num_classes), fill_value=0).sort_index()
         total = int(counts.sum())
         raw_weights: list[float] = []
@@ -162,6 +292,9 @@ def compute_class_weights(csv_path: Path, device: torch.device) -> dict[str, tor
         positive = tensor > 0
         if positive.any():
             tensor[positive] = tensor[positive] / tensor[positive].mean()
+            if class_weight_power != 1.0:
+                tensor[positive] = tensor[positive].pow(float(class_weight_power))
+                tensor[positive] = tensor[positive] / tensor[positive].mean()
         weights[task.name] = tensor
         logger.info("class weights [%s/%d]=%s", task.name, idx, [round(float(v), 4) for v in tensor.cpu()])
     return weights
@@ -172,6 +305,7 @@ def classification_loss(
     targets: torch.Tensor,
     class_weights: dict[str, torch.Tensor],
     label_smoothing: float,
+    ordinal_loss_weight: float,
 ) -> tuple[torch.Tensor, dict[str, float]]:
     total = targets.new_tensor(0.0, dtype=torch.float32)
     pieces: dict[str, float] = {}
@@ -184,12 +318,24 @@ def classification_loss(
         if not mask.any():
             pieces[f"loss_{task.name}"] = 0.0
             continue
+        logits = cls_outputs[task.name][mask]
+        active_targets = task_targets[mask]
         loss = F.cross_entropy(
-            cls_outputs[task.name][mask],
-            task_targets[mask],
+            logits,
+            active_targets,
             weight=class_weights.get(task.name),
             label_smoothing=label_smoothing,
         )
+        if ordinal_loss_weight > 0:
+            class_indices = torch.arange(logits.size(1), device=logits.device, dtype=logits.dtype)
+            expected_grade = (F.softmax(logits, dim=1) * class_indices).sum(dim=1)
+            denom = float(max(task.num_classes - 1, 1))
+            ordinal_loss = F.smooth_l1_loss(
+                expected_grade / denom,
+                active_targets.to(dtype=logits.dtype) / denom,
+            )
+            loss = loss + (ordinal_loss_weight * ordinal_loss)
+            pieces[f"loss_{task.name}_ordinal"] = float(ordinal_loss.detach().cpu())
         total = total + loss
         pieces[f"loss_{task.name}"] = float(loss.detach().cpu())
         active_tasks += 1
@@ -334,6 +480,7 @@ def run_epoch(
                 targets=batch["cls_targets"],
                 class_weights=class_weights,
                 label_smoothing=args.label_smoothing,
+                ordinal_loss_weight=args.ordinal_loss_weight,
             )
             reg_loss = regression_loss(
                 outputs=outputs,
@@ -376,6 +523,7 @@ def save_checkpoint(
         "epoch": epoch,
         "best_score": best_score,
         "best_epoch": best_epoch,
+        "grade_scheme": args.grade_scheme,
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "scheduler_state_dict": scheduler.state_dict(),
@@ -465,6 +613,9 @@ def maybe_resume(
 
 
 def train(args: argparse.Namespace) -> None:
+    global CLASSIFICATION_TASKS
+    CLASSIFICATION_TASKS = get_classification_tasks(args.grade_scheme)
+
     if not args.train_csv.exists():
         raise FileNotFoundError(f"Missing train CSV: {args.train_csv}")
     if not args.val_csv.exists():
@@ -487,7 +638,19 @@ def train(args: argparse.Namespace) -> None:
         projection_dim=args.projection_dim,
         dropout_p=args.dropout_p,
         freeze_backbone=args.freeze_backbone,
+        freeze_until=args.freeze_until,
+        tasks=CLASSIFICATION_TASKS,
     ).to(device)
+    total_params = sum(param.numel() for param in model.parameters())
+    trainable_count = sum(param.numel() for param in model.parameters() if param.requires_grad)
+    logger.info(
+        "trainable params=%d / %d (%.2f%%), freeze_backbone=%s, freeze_until=%s",
+        trainable_count,
+        total_params,
+        100.0 * trainable_count / max(total_params, 1),
+        args.freeze_backbone,
+        args.freeze_until,
+    )
 
     trainable_params = [param for param in model.parameters() if param.requires_grad]
     optimizer = torch.optim.AdamW(
@@ -502,7 +665,12 @@ def train(args: argparse.Namespace) -> None:
         patience=args.scheduler_patience,
         min_lr=args.scheduler_min_lr,
     )
-    class_weights = compute_class_weights(args.train_csv, device)
+    class_weights = compute_class_weights(
+        args.train_csv,
+        device,
+        class_weight_power=args.class_weight_power,
+        grade_scheme=args.grade_scheme,
+    )
 
     latest_path = checkpoint_dir / "latest.pth"
     best_path = checkpoint_dir / "best.pth"
@@ -517,6 +685,7 @@ def train(args: argparse.Namespace) -> None:
     bad_epochs = 0
 
     logger.info("checkpoint_dir=%s", checkpoint_dir)
+    logger.info("grade_scheme=%s", args.grade_scheme)
     logger.info("classification tasks=%s", [task.name for task in CLASSIFICATION_TASKS])
     logger.info("regression targets=%s", list(REGRESSION_TARGETS))
 

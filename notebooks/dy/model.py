@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from torchvision import models
 
-from task_config import CLASSIFICATION_TASKS, REGRESSION_TARGETS
+from task_config import CLASSIFICATION_TASKS, REGRESSION_TARGETS, ClassificationTask
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -70,8 +70,11 @@ class ResNet50MultiTask(nn.Module):
         projection_dim: int = 512,
         dropout_p: float = 0.30,
         freeze_backbone: bool = False,
+        freeze_until: str = "none",
+        tasks: tuple[ClassificationTask, ...] = CLASSIFICATION_TASKS,
     ):
         super().__init__()
+        self.tasks = tasks
         backbone = build_resnet50_backbone(weights=weights, pretrained_path=pretrained_path)
         in_features = backbone.fc.in_features
         backbone.fc = nn.Identity()
@@ -86,17 +89,40 @@ class ResNet50MultiTask(nn.Module):
         self.classification_heads = nn.ModuleDict(
             {
                 task.name: nn.Linear(projection_dim, task.num_classes)
-                for task in CLASSIFICATION_TASKS
+                for task in self.tasks
             }
         )
         self.regression_head = nn.Linear(projection_dim, len(REGRESSION_TARGETS))
 
         if freeze_backbone:
             self.freeze_backbone()
+        elif freeze_until != "none":
+            self.freeze_backbone_until(freeze_until)
 
     def freeze_backbone(self) -> None:
         for param in self.backbone.parameters():
             param.requires_grad = False
+
+    def freeze_backbone_until(self, freeze_until: str) -> None:
+        """Freeze early ResNet stages while leaving later stages trainable."""
+        stage_order = ["stem", "layer1", "layer2", "layer3"]
+        if freeze_until not in stage_order:
+            raise ValueError(f"freeze_until must be one of {stage_order} or 'none'")
+
+        selected = set(stage_order[: stage_order.index(freeze_until) + 1])
+        for name, param in self.backbone.named_parameters():
+            stage = None
+            if name.startswith(("conv1.", "bn1.")):
+                stage = "stem"
+            elif name.startswith("layer1."):
+                stage = "layer1"
+            elif name.startswith("layer2."):
+                stage = "layer2"
+            elif name.startswith("layer3."):
+                stage = "layer3"
+
+            if stage in selected:
+                param.requires_grad = False
 
     def unfreeze_backbone(self) -> None:
         for param in self.backbone.parameters():
@@ -119,6 +145,8 @@ def get_model(
     projection_dim: int = 512,
     dropout_p: float = 0.30,
     freeze_backbone: bool = False,
+    freeze_until: str = "none",
+    tasks: tuple[ClassificationTask, ...] = CLASSIFICATION_TASKS,
 ) -> ResNet50MultiTask:
     return ResNet50MultiTask(
         weights=weights,
@@ -126,4 +154,6 @@ def get_model(
         projection_dim=projection_dim,
         dropout_p=dropout_p,
         freeze_backbone=freeze_backbone,
+        freeze_until=freeze_until,
+        tasks=tasks,
     )

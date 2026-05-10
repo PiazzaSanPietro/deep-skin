@@ -91,7 +91,12 @@ MOISTURE_RULES = [
 ]
 
 
-def part_result(task_name: str, grade: int, confidence: float) -> dict[str, Any]:
+def part_result(
+    task_name: str,
+    grade: int,
+    confidence: float,
+    grade_scheme: str = "original",
+) -> dict[str, Any]:
     task = CLASSIFICATION_TASK_BY_NAME[task_name]
     return {
         "raw_part_name": task.part_name,
@@ -100,7 +105,7 @@ def part_result(task_name: str, grade: int, confidence: float) -> dict[str, Any]
         "metric_display_name": task.metric_display_name,
         "issue_type": task.issue_type,
         "grade_value": int(grade),
-        "severity": grade_to_severity(int(grade)),
+        "severity": grade_to_severity(int(grade), grade_scheme=grade_scheme),
         "confidence_score": round(float(confidence), 4),
     }
 
@@ -165,12 +170,14 @@ def numeric_explanations(regression: dict[str, float]) -> list[dict[str, Any]]:
 def build_report(
     classification_predictions: dict[str, dict[str, float | int]],
     regression_predictions: dict[str, float],
+    grade_scheme: str = "original",
 ) -> dict[str, Any]:
     parts = [
         part_result(
             task_name=task_name,
             grade=int(prediction["grade"]),
             confidence=float(prediction["confidence"]),
+            grade_scheme=grade_scheme,
         )
         for task_name, prediction in classification_predictions.items()
     ]

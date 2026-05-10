@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True)
@@ -17,7 +17,7 @@ class ClassificationTask:
     num_classes: int
 
 
-CLASSIFICATION_TASKS: tuple[ClassificationTask, ...] = (
+BASE_CLASSIFICATION_TASKS: tuple[ClassificationTask, ...] = (
     ClassificationTask(
         name="forehead_pigmentation",
         column="label_forehead_pigmentation",
@@ -50,8 +50,40 @@ CLASSIFICATION_TASKS: tuple[ClassificationTask, ...] = (
     ),
 )
 
+CLASSIFICATION_TASKS = BASE_CLASSIFICATION_TASKS
 CLASSIFICATION_TASK_NAMES = tuple(task.name for task in CLASSIFICATION_TASKS)
 CLASSIFICATION_TASK_BY_NAME = {task.name: task for task in CLASSIFICATION_TASKS}
+
+GRADE_SCHEMES = ("original", "three")
+
+
+def get_classification_tasks(grade_scheme: str = "original") -> tuple[ClassificationTask, ...]:
+    """Return task definitions for original grades or grouped 3-grade labels."""
+    if grade_scheme == "original":
+        return BASE_CLASSIFICATION_TASKS
+    if grade_scheme == "three":
+        return tuple(replace(task, num_classes=3) for task in BASE_CLASSIFICATION_TASKS)
+    raise ValueError(f"grade_scheme must be one of {GRADE_SCHEMES}: {grade_scheme}")
+
+
+def map_grade(grade: int, grade_scheme: str = "original") -> int:
+    """Map source grade to the active training grade scheme."""
+    grade = int(grade)
+    if grade_scheme == "original":
+        return grade
+    if grade_scheme == "three":
+        if grade <= 1:
+            return 0
+        if grade <= 3:
+            return 1
+        return 2
+    raise ValueError(f"grade_scheme must be one of {GRADE_SCHEMES}: {grade_scheme}")
+
+
+def grade_scheme_label(grade: int, grade_scheme: str = "original") -> str:
+    if grade_scheme == "three":
+        return ("low", "middle", "high")[int(grade)]
+    return str(int(grade))
 
 # A compact set of forehead equipment targets. The raw JSON contains many
 # elasticity parameters; these are enough to give the model numeric evidence
@@ -95,7 +127,13 @@ ALL_EQUIPMENT_COLUMNS: tuple[str, ...] = (
 )
 
 
-def grade_to_severity(grade: int) -> str:
+def grade_to_severity(grade: int, grade_scheme: str = "original") -> str:
+    if grade_scheme == "three":
+        if grade <= 0:
+            return "normal"
+        if grade == 1:
+            return "moderate"
+        return "severe"
     if grade <= 0:
         return "normal"
     if grade == 1:
