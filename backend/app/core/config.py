@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads/skin_images"
     MAX_IMAGE_SIZE_MB: int = 10
 
+    # ── AI Inference ──────────────────────
+    AI_INFERENCE_MODE: str = "mock"          # "mock" | "remote"
+    AI_INFERENCE_URL: str = "http://localhost:9000/inference/skin"
+    AI_INFERENCE_TIMEOUT_SECONDS: int = 30
+
     @property
     def DATABASE_URL(self) -> str:
         return (
