@@ -10,7 +10,7 @@
 frontend/
 ├── app.py
 ├── requirements.txt
-├── .env.example
+├── .env
 │
 ├── assets/
 │   ├── logo/
@@ -73,7 +73,7 @@ Streamlit 앱 진입점이다.
 - 페이지 라우팅
 - 로그인 상태 확인
 - 세션 상태 초기화
-- 공통 레이아웃 적용
+- 로그인 후 화면을 접힘/펼침 가능한 좌측 내비게이션 컬럼과 본문 컬럼으로 구성
 
 > Streamlit 기본 `pages/` 폴더 기능은 사용하지 않는다.
 > 화면은 `views/` 폴더에 두고, 라우팅은 `app.py`에서 직접 관리한다.
@@ -142,7 +142,7 @@ frontend/assets/ui_references/
 - 둥근 카드 UI
 - 부드러운 그림자
 - 그라데이션 버튼
-- 좌측 사이드바
+- 좌측 앱 내 내비게이션
 - 칩 형태의 성분/고민 표시
 - 넓은 여백과 깔끔한 배치
 
@@ -207,7 +207,8 @@ frontend/assets/ui_references/
 ```components/layout.py```
 공통 레이아웃을 담당한다.
 
-- 사이드바
+- 로그인 후 화면의 접힘/펼침 가능한 좌측 내비게이션
+- expanded / collapsed 사이드바 렌더링 분리
 - 헤더
 - 로그아웃 버튼
 - 페이지 타이틀
