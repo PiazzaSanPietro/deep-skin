@@ -89,11 +89,15 @@ recommendation_rules
 | `metric_display_name` | 지표 표시명 |
 | `issue_type` | 이슈 key. 예: `pore`, `wrinkle`, `dryness`, `sagging` |
 | `severity` | `normal`, `mild`, `moderate`, `severe` |
-| `grade_value` | 원본 등급 값 |
+| `grade_value` | 원본 등급 값. 분류 등급 정수 (0~3) |
+| `predicted_value` | 이미지 기반 AI 모델 예측 회귀값. mock/remote inference 경로에서 저장. 예: `0.62` |
+| `measured_value` | AI-Hub JSON 또는 피부 측정 장비 기반 원본 수치. dev JSON 경로에서 저장. 예: `2.73`, `55.667` |
 | `confidence_score` | 모델 신뢰도 |
 | `model_name`, `model_version` | 추론 출처 |
 
 `issue_type`에는 심각도 정보를 섞지 않습니다. 심각도는 `severity` 컬럼으로 분리합니다.
+
+`predicted_value`와 `measured_value`는 `Float(53), nullable=True`로 DB에 존재합니다. 이미지 inference 경로에는 `predicted_value`, dev JSON 경로에는 `measured_value`가 각각 저장됩니다. 두 컬럼 모두 migration 추가 없이 기존 컬럼을 사용합니다.
 
 ## 추천 저장 규칙
 

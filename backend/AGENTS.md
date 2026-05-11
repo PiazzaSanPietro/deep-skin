@@ -65,6 +65,18 @@ python -m uvicorn app.main:app --reload
 - `GET /recommendations/sessions/{session_id}`
 - `POST /dev/analysis/sessions/{session_id}/json`
 
+## 회귀값 반영 현황 (2026-05-11 완료)
+
+현재 백엔드는 `skin_part_results.measured_value` / `predicted_value` 컬럼을 활용합니다.
+
+- `predicted_value`: 이미지 기반 AI 모델 예측 회귀값. mock/remote inference 경로에서 저장
+- `measured_value`: AI-Hub JSON 또는 피부 측정 장비 기반 원본 수치. dev JSON 경로에서 저장
+- `grade_value` / `severity` 기존 흐름 유지 — 기존 코드와 하위 호환
+- `recommendation_service`는 현재 `severity` 기반으로 동작 (미변경)
+- 두 컬럼은 migration 0003에서 이미 생성되어 있으며, 신규 migration 추가 불필요
+
+관련 문서: `docs/ai_inference_contract.md`, `docs/regression_implementation_plan.md`, `docs/regression_result_db_plan.md`
+
 ## 작업 주의사항
 
 - 기능 코드를 수정할 때는 라우터보다 서비스 계층의 실제 흐름을 먼저 확인합니다.

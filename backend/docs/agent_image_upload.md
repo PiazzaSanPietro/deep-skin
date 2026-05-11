@@ -96,6 +96,8 @@ uploads/skin_images/{user_id}/{session_id}/{uuid}.jpg
         "metric_display_name": "모공",
         "issue_type": "pore",
         "grade_value": 2,
+        "predicted_value": 0.62,
+        "measured_value": null,
         "severity": "moderate",
         "confidence_score": 0.82
       }

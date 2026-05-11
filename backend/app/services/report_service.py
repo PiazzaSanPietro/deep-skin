@@ -70,6 +70,8 @@ def get_report(db: Session, session_id: int, user_id: int) -> ReportResponse:
                 issue_type=r.issue_type,
                 severity=r.severity,
                 grade_value=r.grade_value,
+                predicted_value=r.predicted_value,
+                measured_value=r.measured_value,
                 reason=r.reason_text,
             )
             for r in part_results

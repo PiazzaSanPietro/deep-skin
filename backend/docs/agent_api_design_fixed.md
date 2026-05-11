@@ -201,10 +201,32 @@ Response:
   "inference_result": {
     "model_name": "mock_skin_model",
     "model_version": "0.0.1",
-    "parts": []
+    "parts": [
+      {
+        "raw_part_name": "left_cheek",
+        "display_part_name": "볼",
+        "metric_name": "pore",
+        "metric_display_name": "모공",
+        "issue_type": "pore",
+        "grade_value": 2,
+        "predicted_value": 0.62,
+        "measured_value": null,
+        "severity": "moderate",
+        "confidence_score": 0.82
+      }
+    ]
   }
 }
 ```
+
+inference_result.parts[] 주요 필드:
+
+| Field | Type | 설명 |
+|---|---|---|
+| `grade_value` | int | 기존 서비스 호환용 등급화된 정수값 |
+| `predicted_value` | float \| null | 이미지 기반 AI 모델 예측 회귀값. 없으면 null |
+| `measured_value` | float \| null | AI-Hub JSON 또는 장비 측정 기반 원본 수치. 없으면 null |
+| `severity` | string | UI 표시 및 추천 로직에 사용하는 심각도 |
 
 ### GET `/analysis/sessions/{session_id}/report`
 
@@ -225,7 +247,18 @@ Response:
     {
       "display_part_name": "볼",
       "summary": "볼 부위에 모공 관리가 필요합니다.",
-      "issues": [],
+      "issues": [
+        {
+          "metric_name": "pore",
+          "metric_display_name": "모공",
+          "issue_type": "pore",
+          "severity": "moderate",
+          "grade_value": 2,
+          "predicted_value": 0.62,
+          "measured_value": null,
+          "reason": null
+        }
+      ],
       "recommendation": null
     }
   ]
@@ -272,7 +305,7 @@ Response:
     {
       "info": {"filename": "test.jpg", "id": "0001", "gender": "F", "age": 28},
       "images": {"facepart": 5, "angle": 0, "width": 2136, "height": 3216, "bbox": [712, 676, 1835, 1139]},
-      "annotations": {"l_cheek_pore": 2, "l_perocular_wrinkle": 3}
+      "annotations": {"l_cheek_pore": 2.73, "l_perocular_wrinkle": 3.91}
     }
   ]
 }

@@ -15,13 +15,17 @@ AI 피부 분석 모델은 크게 두 가지 출력 방식을 가질 수 있다.
 
 | 항목 | 현재 상태 |
 |---|---|
-| inference contract 스키마 | `grade_value(int)`, `severity(str)`, `confidence_score(float)` — 회귀 연속값 필드 없음 |
-| `PartResult` Pydantic 스키마 | 동일. `regression_value` 또는 `measured_value` 필드 없음 |
-| `json_parser.py` | AI-Hub annotation 값을 `int(raw_value)`로 파싱 → `grade_value`로 저장. 연속형 float 파싱 경로 없음 |
+| inference contract 스키마 | **완료 (9단계)** `predicted_value: float(Optional)`, `measured_value: float(Optional)` 필드 추가. `ai_inference_contract.md` 업데이트 완료 |
+| `PartResult` Pydantic 스키마 | **완료 (1단계)** `predicted_value: Optional[float] = None`, `measured_value: Optional[float] = None` 필드 추가 완료 |
+| `json_parser.py` | **완료 (5단계)** `float(raw_value)` 파싱 후 `measured_value` 보존. `int(raw_float)`로 `grade_value` 생성. `ParsedPartResult`에 `measured_value: float \| None` 필드 추가 완료 |
 | `SkinPartResult` ORM 모델 | `grade_value(int)`, `measured_value(float)`, `predicted_value(float)` 컬럼 존재 (nullable). `confidence_score(float)` 있음 |
-| `image_service.py` 저장 로직 | `part.grade_value`, `part.severity`, `part.confidence_score`만 저장. `measured_value`, `predicted_value`는 저장하지 않음 |
-| `report.py` 스키마 `IssueItem` | `grade_value(Optional[int])` 포함. 회귀 연속값 필드 없음 |
-| Alembic migration 이력 | `measured_value`, `predicted_value` 컬럼이 0003에서 이미 생성됨. 별도의 `regression_value` 컬럼은 없음 |
+| `image_service.py` 저장 로직 | **완료 (2단계)** `predicted_value=part.predicted_value`, `measured_value=part.measured_value` 저장 추가 완료 |
+| `dev_json_service.py` 저장 로직 | **완료 (6단계)** `SkinPartResult(...)` 블록에 `measured_value=part.measured_value` 저장 추가 완료 |
+| `inference_service.py` mock 결과 | **완료 (7단계)** `_run_mock()` 7개 `PartResult`에 `predicted_value` 추가 완료 |
+| `dummy_ai_server.py` 더미 응답 | **완료 (8단계)** `_MOCK_PARTS` 7개 항목에 `predicted_value` 추가 완료 |
+| `report.py` 스키마 `IssueItem` | **완료 (3단계)** `predicted_value: Optional[float] = None`, `measured_value: Optional[float] = None` 필드 추가 완료 |
+| `report_service.py` `IssueItem` 생성 | **완료 (4단계)** `predicted_value=r.predicted_value`, `measured_value=r.measured_value` 매핑 추가 완료 |
+| Alembic migration 이력 | `measured_value`, `predicted_value` 컬럼이 0003에서 이미 생성됨. 별도의 `regression_value` 컬럼은 없음. **migration 추가 불필요** |
 
 ---
 
@@ -51,7 +55,7 @@ AI 피부 분석 모델은 크게 두 가지 출력 방식을 가질 수 있다.
 | `model_version` | String(100) | Yes | 추론 모델 버전 |
 | `created_at` | DateTime | No | 생성 시각 |
 
-**핵심 발견**: `measured_value`와 `predicted_value` 컬럼이 이미 테이블에 존재한다(nullable). 이 컬럼은 회귀 연속값 저장을 위해 미리 설계된 자리다. 현재 어떤 서비스 코드에서도 이 컬럼에 값을 쓰지 않는다.
+**현재 상태 (2026-05-11 기준)**: `measured_value`와 `predicted_value` 컬럼이 이미 테이블에 존재한다(nullable). 이 컬럼은 회귀 연속값 저장을 위해 미리 설계된 자리였으며, **현재는 1~8단계 구현 완료로 실제 값이 저장된다.** 이미지 inference 경로에는 `predicted_value`, dev JSON 경로에는 `measured_value`가 각각 저장된다.
 
 ---
 
@@ -60,30 +64,34 @@ AI 피부 분석 모델은 크게 두 가지 출력 방식을 가질 수 있다.
 `app/schemas/image_upload.py`의 `PartResult` 클래스:
 
 ```python
+# 현재 구현 상태 (1단계 완료)
 class PartResult(BaseModel):
     raw_part_name: str
     display_part_name: str
     metric_name: str
     metric_display_name: str
     issue_type: str
-    grade_value: int        # 분류 등급 정수
-    severity: str           # normal / mild / moderate / severe
-    confidence_score: float # 신뢰도
+    grade_value: int                        # 분류 등급 정수 (필수)
+    predicted_value: Optional[float] = None # 이미지 기반 AI 모델 예측 회귀값 (7단계 완료)
+    measured_value: Optional[float] = None  # AI-Hub JSON / 장비 측정 원본값 (5단계 완료)
+    severity: str                           # normal / mild / moderate / severe (필수)
+    confidence_score: float                 # 신뢰도 (필수)
 ```
 
-현재 schema에는 회귀 연속값 필드가 없다.
+현재 schema에는 회귀 연속값 필드가 포함되어 있다. (1단계 완료)
 
-현재 AI inference contract(`ai_inference_contract.md`)에 정의된 응답 필드도 동일하며,
-`regression_value`, `measured_value`, `predicted_value` 등의 연속형 수치 필드를 포함하지 않는다.
+현재 AI inference contract(`ai_inference_contract.md`)도 두 필드를 Optional로 명시한다. (9단계 완료)
 
-mock 결과(`inference_service._run_mock()`)도 모두 정수 `grade_value`와 문자열 `severity`만 사용한다.
+mock 결과(`inference_service._run_mock()`)도 `predicted_value`를 포함한다. (7단계 완료)
 
-즉, 현재 백엔드 inference 응답 구조는 아래 값만 받는 상태다.
+현재 백엔드 inference 응답 구조:
 
 ```
-grade_value       → 등급화된 정수값
-severity          → UI/추천용 심각도
-confidence_score  → 모델 신뢰도
+grade_value       → 등급화된 정수값 (필수)
+predicted_value   → 이미지 기반 AI 모델 예측 회귀값 (Optional, mock/remote inference 경로)
+measured_value    → AI-Hub JSON / 장비 측정 원본값 (Optional, dev JSON 경로)
+severity          → UI/추천용 심각도 (필수)
+confidence_score  → 모델 신뢰도 (필수)
 ```
 
 반면 피부 측정 장비 기반 데이터 또는 AI-Hub JSON에는 수분, 탄력, 주름, 모공처럼
@@ -240,6 +248,79 @@ UI 표시 및 추천용 심각도            → severity
   "severity": "mild"
 }
 ```
+
+---
+
+## 5-2. measured_value와 grade_value 관계 — 원본 수치 보존의 중요성
+
+AI-Hub JSON 또는 피부 측정 장비에서 `2.73` 같은 소수점 값이 들어오면, 이 값을 단순히 `grade_value=2`로만 저장해서는 안 된다.
+
+- `grade_value=2`: 기존 서비스 흐름을 위한 **등급값**. 추천 로직 및 severity 계산에 사용된다. `int(2.73) = 2`로 생성된다.
+- `measured_value=2.73`: **원본 측정값**. `grade_value`와 별도로 저장해야 한다. 추후 프론트 리포트에서 사용자에게 직접 보여줄 수 있는 값이다.
+
+### 저장 예시
+
+```json
+{
+  "metric_name": "pore",
+  "metric_display_name": "모공",
+  "measured_value": 2.73,
+  "grade_value": 2,
+  "severity": "moderate"
+}
+```
+
+| 필드 | 값 | 의미 |
+|---|---|---|
+| `measured_value` | `2.73` | 원본 측정값. 상세 리포트/전문가용 수치. 사용자에게 직접 표시 가능. |
+| `grade_value` | `2` | `int(2.73) = 2`. 기존 등급값. 추천/상태 로직 호환용. |
+| `severity` | `"moderate"` | 현재는 `grade_value` 기준으로 계산. 추후 `measured_value` 기반 임계값 확정 시 더 정교한 계산 가능. |
+
+### dev JSON 경로에서의 처리 흐름 (5~6단계 구현 후)
+
+```
+AI-Hub JSON annotation: {"l_cheek_pore": 2.73}
+      ↓
+json_parser.py (5단계)
+      raw_float = float("2.73") = 2.73   ← 원본 보존
+      grade    = int(2.73)     = 2       ← 등급 생성
+      → ParsedPartResult(grade_value=2, measured_value=2.73, severity="moderate")
+      ↓
+dev_json_service.py (6단계)
+      SkinPartResult.grade_value    = 2
+      SkinPartResult.measured_value = 2.73   ← DB에 저장
+      SkinPartResult.severity       = "moderate"
+```
+
+### json_parser.py와 dev_json_service.py의 역할 구분
+
+두 파일은 반드시 함께 구현해야 한다. `json_parser.py`만 수정하면 `ParsedPartResult`에 `measured_value`가 생기지만 DB에는 저장되지 않는다. `dev_json_service.py`에서 `SkinPartResult.measured_value`로 매핑해야 실제 DB에 반영된다.
+
+| 파일 | 역할 |
+|---|---|
+| `json_parser.py` | `raw_value`를 `float()`로 먼저 파싱하여 원본 수치 보존. `grade_value = int(raw_float)`, `measured_value = raw_float`로 `ParsedPartResult` 생성 |
+| `dev_json_service.py` | `ParsedPartResult.measured_value`를 `SkinPartResult.measured_value`로 DB에 저장 |
+
+---
+
+## 5-3. severity 계산 기준 — 현재 단계
+
+현재 단계에서는 **`severity`를 `measured_value` 기준으로 새로 계산하지 않는다.**
+
+이유:
+- `recommendation_service`가 `severity` 기반으로 동작하고 있다.
+- 지표별 `measured_value` 임계값이 아직 확정되지 않았다.
+- 수분, 탄력, 주름, 모공은 값이 클수록 좋은지/나쁜지가 지표별로 다를 수 있다.
+- 이번 구현에서는 기존 `grade_value → severity` 흐름을 유지한다.
+
+**추후 고도화 방향:** 지표별 임계값과 방향성이 확정되면 `measured_value` 또는 `predicted_value` 기준으로 severity를 더 정교하게 계산할 수 있다.
+
+| 지표 | 값의 방향성 (예시, 데이터 명세 확인 필요) |
+|---|---|
+| 수분 (`moisture`) | 값 낮을수록 건조 — 낮으면 나쁨 |
+| 주름 roughness (`Ra`, `Rmax`, `Rt` 등) | 값 높을수록 주름 심함 — 높으면 나쁨 |
+| 탄력 R2/R7 | 값 낮을수록 탄력 저하 — 낮으면 나쁨 |
+| 모공 (`pore`) | 값 높을수록 관리 필요 가능성 — 확인 필요 |
 
 ---
 
@@ -508,6 +589,14 @@ class IssueItem(BaseModel):
 
 9. **연속형 수치 → grade_value / severity 변환 임계값 정의**: 장비 측정값 또는 회귀값에서 등급(0~3)과 severity(normal/mild/moderate/severe)로 변환하는 지표별 임계값 테이블이 별도로 필요하다.
 
+10. **measured_value 프론트 표시 UI 정책 미결정**: `measured_value`를 프론트 리포트에서 어떻게 표시할지 UI 정책 결정 필요. 예: `"측정값: 2.73"` 텍스트 표시, 게이지/미터 시각화, 상세 보기 모드, 전문가 전용 뷰 등. 현재는 API 응답에는 포함되지만 프론트 활용 방식이 미정이다.
+
+11. **measured_value 기준 severity 계산은 이번 구현 범위에서 제외**: 지표별 임계값과 방향성(높을수록 좋은지/나쁜지)이 확정된 뒤 별도 작업으로 진행한다. 현재는 기존 `grade_value → severity` 흐름을 유지한다. `recommendation_service`가 `severity` 기반으로 동작하므로 미확정 상태에서 변경하면 추천 품질이 저하될 수 있다.
+
+12. **dev JSON 경로에서는 predicted_value가 아닌 measured_value 중심**: `predicted_value`는 이미지 기반 딥러닝 모델 예측 경로(`image_service.py`)에서 사용한다. dev JSON 경로(`json_parser.py` → `dev_json_service.py`)에서는 AI-Hub annotation 원본 수치를 `measured_value`에 저장하는 것이 목적이다. 두 컬럼의 데이터 출처를 혼용하지 않도록 주의한다.
+
+13. **json_parser.py와 dev_json_service.py는 반드시 함께 구현**: `json_parser.py`만 수정하면 `ParsedPartResult`에 `measured_value`가 생기지만 DB에는 반영되지 않는다. `dev_json_service.py`에서 `SkinPartResult.measured_value`로 매핑해야 실제 DB에 저장된다. 5단계(`json_parser.py`)와 6단계(`dev_json_service.py`)는 반드시 연속으로 구현한다.
+
 ---
 
 ## 13. 수정이 필요한 기존 문서 목록과 변경할 내용 요약
@@ -518,6 +607,30 @@ class IssueItem(BaseModel):
 | `docs/agent_db_design_fixed.md` | `skin_part_results` 핵심 필드 목록에 `measured_value`, `predicted_value` 설명 추가. 현재 표에서 두 컬럼이 누락되어 있음 |
 | `docs/agent_api_design_fixed.md` | `GET /analysis/sessions/{session_id}/report` 응답의 `IssueItem` 예시에 `predicted_value` 필드 추가. `POST /analysis/sessions/{session_id}/images` 응답의 `parts[]` 예시에 `predicted_value` 필드 추가 |
 | `docs/agent_image_upload.md` | Response 예시의 `inference_result.parts[]` 항목에 `predicted_value` 필드 추가 |
+
+---
+
+## 14. 5~6단계 구현 전 재확인 항목 (1~4단계 완료 현황)
+
+5단계(`json_parser.py`)와 6단계(`dev_json_service.py`) 구현 전, 아래 1~4단계 완료 항목을 재확인한다.
+
+1. **`app/schemas/image_upload.py` (1단계 완료)**
+   - `PartResult`에 `predicted_value: Optional[float] = None` 있는지 확인
+   - `PartResult`에 `measured_value: Optional[float] = None` 있는지 확인
+
+2. **`app/services/image_service.py` (2단계 완료)**
+   - 이미지 inference 경로 `SkinPartResult(...)` 블록에 `predicted_value=part.predicted_value` 있는지 확인
+   - 이미지 inference 경로 `SkinPartResult(...)` 블록에 `measured_value=part.measured_value` 있는지 확인
+
+3. **`app/schemas/report.py` (3단계 완료)**
+   - `IssueItem`에 `predicted_value: Optional[float] = None` 있는지 확인
+   - `IssueItem`에 `measured_value: Optional[float] = None` 있는지 확인
+
+4. **`app/services/report_service.py` (4단계 완료)**
+   - `IssueItem(...)` 생성 블록에 `predicted_value=r.predicted_value` 있는지 확인
+   - `IssueItem(...)` 생성 블록에 `measured_value=r.measured_value` 있는지 확인
+
+위 항목이 모두 확인되어야 5~6단계 구현 후 dev JSON 경로의 `measured_value`가 파싱 → DB 저장 → 리포트 응답 전체 흐름에서 일관되게 동작한다.
 
 ---
 

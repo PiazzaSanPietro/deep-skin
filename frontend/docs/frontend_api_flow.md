@@ -229,11 +229,45 @@ GET /analysis/sessions/{session_id}/report
   "overall_summary": {
     "status": "집중 관리 필요",
     "main_message": "눈가 부위의 주름, 볼 부위의 모공 관리가 필요합니다.",
-    "main_issues": []
+    "main_issues": [
+      {"issue_type": "wrinkle", "severity": "severe"},
+      {"issue_type": "pore", "severity": "moderate"}
+    ]
   },
-  "part_reports": []
+  "part_reports": [
+    {
+      "display_part_name": "볼",
+      "summary": "모공 관리가 필요합니다.",
+      "issues": [
+        {
+          "metric_name": "pore",
+          "metric_display_name": "모공",
+          "issue_type": "pore",
+          "severity": "moderate",
+          "grade_value": 2,
+          "predicted_value": 0.62,
+          "measured_value": null,
+          "reason": null
+        }
+      ],
+      "recommendation": null
+    }
+  ]
 }
 ```
+
+#### issues[] 주요 필드 설명
+
+| Field | 설명 |
+|---|---|
+| `grade_value` | 기존 서비스 호환용 등급값 (0~3) |
+| `severity` | UI 표시 및 추천 로직 기준 상태값. `normal` / `mild` / `moderate` / `severe` |
+| `predicted_value` | 이미지 기반 AI 모델 예측 회귀값. 이미지 업로드 경로에서 사용. 없으면 `null` |
+| `measured_value` | AI-Hub JSON 또는 피부 측정 장비 기반 원본 수치. dev JSON 경로에서 사용. 없으면 `null` |
+
+- 이미지 업로드 분석 경로: `predicted_value`가 채워지고 `measured_value`는 `null`
+- dev JSON / AI-Hub JSON 경로: `measured_value`가 채워지고 `predicted_value`는 `null`
+- 두 값이 모두 `null`이어도 `grade_value` / `severity` 기반 기존 화면은 정상 동작
 
 #### 인증 실패 처리
 

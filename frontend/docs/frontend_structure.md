@@ -218,6 +218,11 @@ frontend/assets/ui_references/
 
 - 전체 요약 카드
 - 부위별 카드
+  - issue 카드 렌더링
+  - `grade_value` / `severity` 상태 배지 표시
+  - `predicted_value` 있으면 "예측값" 보조 수치 표시
+  - `measured_value` 있으면 "측정값" 보조 수치 표시
+  - 표시 우선순위: `measured_value` > `predicted_value` > 없음
 - 추천 성분 칩
 - 제외 성분 칩
 - 관리 팁 리스트

@@ -247,6 +247,12 @@
     color: #8A96AD;
     font-size: 12px;
 }
+.ds-detail-value {
+    display: block;
+    color: #6B7280;
+    font-size: 11px;
+    margin-top: 2px;
+}
 .ds-report-rec-card {
     min-height: 252px;
     background: #FFFFFF;

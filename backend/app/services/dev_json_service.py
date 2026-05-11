@@ -65,6 +65,7 @@ def upload_dev_json(
                 metric_name=part.metric_name,
                 metric_display_name=part.metric_display_name,
                 grade_value=part.grade_value,
+                measured_value=part.measured_value,
                 severity=part.severity,
                 issue_type=part.issue_type,
                 model_name="ai_hub_annotation",

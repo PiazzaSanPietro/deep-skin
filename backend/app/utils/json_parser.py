@@ -9,6 +9,7 @@ class ParsedPartResult:
     metric_display_name: str
     issue_type: str
     grade_value: int
+    measured_value: float | None
     severity: str
 
 
@@ -118,7 +119,11 @@ def parse_annotations(annotations: dict) -> list[ParsedPartResult]:
         mapping = _ANNOTATION_MAP.get(key)
         if mapping is None:
             continue
-        grade = int(raw_value)
+        try:
+            raw_float = float(raw_value)
+        except (ValueError, TypeError):
+            continue
+        grade = int(raw_float)
         results.append(
             ParsedPartResult(
                 raw_part_name=mapping["raw_part_name"],
@@ -127,6 +132,7 @@ def parse_annotations(annotations: dict) -> list[ParsedPartResult]:
                 metric_display_name=mapping["metric_display_name"],
                 issue_type=mapping["issue_type"],
                 grade_value=grade,
+                measured_value=raw_float,
                 severity=grade_to_severity(grade),
             )
         )
