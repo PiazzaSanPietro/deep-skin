@@ -158,7 +158,7 @@ def inject_css():
         box-sizing: border-box !important;
     }
     .st-key-ds_sidebar_expanded {
-        padding: 18px 18px 20px !important;
+        padding: 20px 20px 22px !important;
         display: flex !important;
         flex-direction: column !important;
     }
@@ -175,27 +175,31 @@ def inject_css():
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
-        gap: 10px !important;
-        min-height: 42px !important;
+        gap: 12px !important;
+        min-height: 50px !important;
     }
     .ds-sidebar-logo {
-        height: 42px;
+        height: 50px;
         display: flex;
         align-items: center;
+    }
+    .ds-sidebar-logo img {
+        height: 38px !important;
+        max-width: 166px !important;
     }
     .ds-sidebar-rule {
         height: 1px;
         background: #E9EFFB;
-        margin: 10px 0 12px;
+        margin: 12px 0 16px;
     }
     .ds-sidebar-rule-spaced {
-        margin: 18px 0 16px;
+        margin: 22px 0 18px;
     }
     .ds-sidebar-info-card {
-        margin: 0 0 16px;
+        margin: 0 0 18px;
         background: linear-gradient(145deg, rgba(238,244,255,0.88) 0%, rgba(243,240,255,0.88) 100%);
         border-radius: 18px;
-        padding: 17px 16px;
+        padding: 18px 17px;
         border: 1px solid rgba(185,203,255,0.72);
         box-shadow: inset 0 1px 0 rgba(255,255,255,0.80);
     }
@@ -209,6 +213,37 @@ def inject_css():
         font-size: 12px;
         color: #6B7894;
         line-height: 1.7;
+    }
+    .ds-sidebar-quota {
+        margin-top: 16px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(185,203,255,0.45);
+    }
+    .ds-sidebar-quota-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        color: #6B7894;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 9px;
+    }
+    .ds-sidebar-quota-row strong {
+        color: #4B7BFF;
+        font-size: 12px;
+    }
+    .ds-sidebar-quota-track {
+        height: 7px;
+        border-radius: 999px;
+        background: #E6EEFF;
+        overflow: hidden;
+    }
+    .ds-sidebar-quota-fill {
+        width: 60%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #4B7BFF 0%, #3DD9C5 100%);
     }
     .ds-collapsed-divider {
         height: 1px;
@@ -267,9 +302,9 @@ def inject_css():
         font-size: 14px !important;
         text-align: left !important;
         box-shadow: none !important;
-        padding: 11px 14px !important;
+        padding: 12px 16px !important;
         width: 100% !important;
-        min-height: 44px !important;
+        min-height: 48px !important;
         transition: background 0.15s, color 0.15s, transform 0.15s !important;
     }
     .st-key-ds_sidebar_expanded .stButton > button:hover {
@@ -550,19 +585,20 @@ def inject_css():
        사이드바 active nav
     ══════════════════════════════════════════ */
     .ds-nav-active {
-        background: linear-gradient(90deg, rgba(75,123,255,0.14) 0%, rgba(61,217,197,0.14) 100%);
+        background: linear-gradient(90deg, rgba(75,123,255,0.18) 0%, rgba(61,217,197,0.18) 100%);
         color: #4B7BFF !important;
         border-radius: 16px;
-        padding: 12px 14px;
+        padding: 13px 16px;
         font-size: 14px;
         font-weight: 800;
-        margin: 4px 0;
+        min-height: 48px;
+        margin: 5px 0;
         cursor: default;
         display: flex;
         align-items: center;
         gap: 10px;
-        border: 1px solid rgba(151,177,255,0.38);
-        box-shadow: inset 3px 0 0 #4B7BFF, 0 8px 18px rgba(75,123,255,0.10);
+        border: 1px solid rgba(123,156,255,0.48);
+        box-shadow: inset 3px 0 0 #4B7BFF, 0 10px 22px rgba(75,123,255,0.13);
     }
     .ds-nav-section {
         font-size: 11px;
@@ -570,7 +606,7 @@ def inject_css():
         color: #9BA9C0;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        padding: 14px 4px 8px;
+        padding: 14px 5px 9px;
     }
     .ds-collapsed-nav-active {
         width: 44px;

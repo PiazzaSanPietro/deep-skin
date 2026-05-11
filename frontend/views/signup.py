@@ -5,6 +5,7 @@ import streamlit as st
 
 from services import auth_api, api_client
 from components.common import show_error, show_success
+from styles.css_loader import load_css_with_vars
 
 
 # ── 헬퍼 ─────────────────────────────────────────────────────────────────────
@@ -54,168 +55,15 @@ def _inject_css(prof: str, eml: str, pw: str, bg_wave: str = ""):
     ic_pw   = f"url('{pw}')" if pw else "none"
     bg_url  = f"url('{bg_wave}')" if bg_wave else "none"
 
-    st.markdown(f"""
-    <style>
-    /* ── 페이지 ── */
-    .stApp {{
-        background-color: #EEF3FF !important;
-        background-image: {bg_url} !important;
-        background-repeat: no-repeat !important;
-        background-position: bottom center !important;
-        background-size: 100% auto !important;
-    }}
-    .block-container {{ padding: 0 !important; max-width: 100% !important; }}
-
-    /* ── 최상위 2-열 레이아웃 (이 페이지에 stHorizontalBlock 은 이것 하나뿐) ── */
-    [data-testid="stHorizontalBlock"] {{
-        gap: 0 !important;
-        align-items: stretch;
-    }}
-    /* 왼쪽 열 */
-    [data-testid="stHorizontalBlock"] > div:first-child {{
-        background: transparent;
-        padding: 40px 48px !important;
-        min-height: 100vh;
-    }}
-    /* 오른쪽 열 — 흰색 카드 */
-    [data-testid="stHorizontalBlock"] > div:last-child {{
-        background: #FFFFFF !important;
-        min-height: 100vh;
-        padding: 28px 44px 64px !important;
-        box-shadow: -3px 0 28px rgba(75, 123, 255, 0.10);
-        overflow: visible !important;
-    }}
-
-    /* ── 입력 아이콘 ── */
-    input[placeholder="홍길동"] {{
-        background-image: {ic_prof};
-        background-repeat: no-repeat;
-        background-size: 18px 18px;
-        background-position: 14px center;
-        padding-left: 42px !important;
-    }}
-    input[placeholder="이메일을 입력해주세요"] {{
-        background-image: {ic_eml};
-        background-repeat: no-repeat;
-        background-size: 18px 18px;
-        background-position: 14px center;
-        padding-left: 42px !important;
-    }}
-    input[placeholder="4자 이상 입력"],
-    input[placeholder="비밀번호를 다시 입력하세요"] {{
-        background-image: {ic_pw};
-        background-repeat: no-repeat;
-        background-size: 18px 18px;
-        background-position: 14px center;
-        padding-left: 42px !important;
-    }}
-
-    /* ── 입력 필드: border는 컨테이너(div>div)에만, input·래퍼는 투명 ── */
-
-    /* 1) 외곽 컨테이너 — border·배경 적용 */
-    .stTextInput > div > div {{
-        border: 1.5px solid #E4EAF5 !important;
-        border-radius: 10px !important;
-        background-color: #FAFBFF !important;
-        box-shadow: none !important;
-    }}
-    .stTextInput > div > div:focus-within {{
-        box-shadow: 0 0 0 3px rgba(75, 123, 255, 0.12) !important;
-    }}
-    /* 2) 실제 input — border 없음, 배경 투명 */
-    .stTextInput > div > div > input {{
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-        background: transparent !important;
-        padding-top: 12px !important;
-        padding-bottom: 12px !important;
-        font-size: 14px !important;
-        color: #0F2447 !important;
-    }}
-    .stTextInput > div > div > input:focus,
-    .stTextInput > div > div > input:active {{
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-    }}
-    /* 3) 눈 아이콘 래퍼 div — 배경·border 제거, 내부 패딩 제거 */
-    .st-bz {{
-        padding-right: 0 !important;
-    }}
-    .st-cj {{
-        padding-right: 0 !important;
-    }}
-    .st-emotion-cache-tn0cau {{
-        gap: 0 !important;
-    }}
-    .stTextInput > div > div > div {{
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-    }}
-    /* 4) 눈 아이콘 버튼 자체 */
-    [data-testid="passwordInputVisibilityToggle"] {{
-        background: transparent !important;
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        outline: none !important;
-        padding: 0 8px !important;
-    }}
-    [data-testid="passwordInputVisibilityToggle"]:hover,
-    [data-testid="passwordInputVisibilityToggle"]:focus {{
-        background: transparent !important;
-        border: none !important;
-        box-shadow: none !important;
-        outline: none !important;
-    }}
-    /* "Press Enter to submit form" 힌트 숨김 */
-    [data-testid="InputInstructions"] {{
-        display: none !important;
-    }}
-    .stTextInput > label {{
-        font-size: 13px !important;
-        font-weight: 600 !important;
-        color: #3A4A6B !important;
-    }}
-
-    /* ── 폼 컨테이너 ── */
-    [data-testid="stForm"] {{
-        border: 1.5px solid #E8EDF8 !important;
-        border-radius: 16px !important;
-        padding: 24px 24px 24px !important;
-        background: #FFFFFF !important;
-        overflow: visible !important;
-    }}
-
-    /* ── 회원가입 버튼 ── */
-    .stForm [data-testid="stFormSubmitButton"] > button {{
-        background: linear-gradient(135deg, #4B7BFF 0%, #3DD9C5 100%) !important;
-        color: #FFFFFF !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        padding: 13px !important;
-        width: 100%;
-        margin-top: 6px;
-        box-shadow: 0 4px 18px rgba(75, 123, 255, 0.30) !important;
-        transition: box-shadow 0.2s, transform 0.15s;
-    }}
-    .stForm [data-testid="stFormSubmitButton"] > button:hover {{
-        box-shadow: 0 6px 26px rgba(75, 123, 255, 0.45) !important;
-        transform: translateY(-1px);
-    }}
-
-    /* ── 로그인 버튼 ── */
-    div[data-testid="stButton"] > button {{
-        border-radius: 10px !important;
-        font-size: 14px !important;
-        font-weight: 600 !important;
-    }}
-    </style>
-    """, unsafe_allow_html=True)
+    load_css_with_vars(
+        "signup.css",
+        {
+            "--ds-signup-bg": bg_url,
+            "--ds-signup-profile-icon": ic_prof,
+            "--ds-signup-email-icon": ic_eml,
+            "--ds-signup-password-icon": ic_pw,
+        },
+    )
 
 
 # ── 왼쪽 패널 — st.columns 미사용, 이미지는 st.markdown 호출 분리 ─────────────
@@ -294,42 +142,40 @@ def _render_right(twink: str):
         if twink else "✦"
     )
 
-    # 폼 타이틀
-    st.markdown(f"""
-    <div style="margin-bottom:20px;">
-        <div style="font-size:26px;font-weight:800;color:#0F2447;
-                    display:inline-flex;align-items:center;gap:4px;">
-            회원가입 {sparkle}
+    with st.container(key="signup_panel"):
+        # 폼 타이틀
+        st.markdown(f"""
+        <div style="margin-bottom:20px;">
+            <div style="font-size:26px;font-weight:800;color:#0F2447;
+                        display:inline-flex;align-items:center;gap:4px;">
+                회원가입 {sparkle}
+            </div>
+            <div style="font-size:13px;color:#6B7894;margin-top:6px;line-height:1.65;">
+                정보를 입력하여 무료로 시작하세요.
+            </div>
         </div>
-        <div style="font-size:13px;color:#6B7894;margin-top:6px;line-height:1.65;">
-            정보를 입력하여 무료로 시작하세요.
+        """, unsafe_allow_html=True)
+
+        # 입력 폼 (st.form 유지)
+        with st.form("signup_form", clear_on_submit=False):
+            name             = st.text_input("이름",          placeholder="홍길동")
+            email            = st.text_input("이메일",        placeholder="이메일을 입력해주세요")
+            password         = st.text_input("비밀번호",      type="password", placeholder="4자 이상 입력")
+            password_confirm = st.text_input("비밀번호 확인", type="password",
+                                             placeholder="비밀번호를 다시 입력하세요")
+            st.markdown('<div style="height:2px;"></div>', unsafe_allow_html=True)
+            submitted = st.form_submit_button("회원가입", width="stretch")
+
+        if submitted:
+            _handle_signup(name, email, password, password_confirm)
+
+        # 로그인 링크
+        st.markdown("""
+        <div class="ds-signin-inline">
+            <span>이미 계정이 있으신가요?</span>
+            <a href="?page=login" target="_self">로그인</a>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 입력 폼 (st.form 유지)
-    with st.form("signup_form", clear_on_submit=False):
-        name             = st.text_input("이름",          placeholder="홍길동")
-        email            = st.text_input("이메일",        placeholder="이메일을 입력해주세요")
-        password         = st.text_input("비밀번호",      type="password", placeholder="4자 이상 입력")
-        password_confirm = st.text_input("비밀번호 확인", type="password",
-                                         placeholder="비밀번호를 다시 입력하세요")
-        st.markdown('<div style="height:2px;"></div>', unsafe_allow_html=True)
-        submitted = st.form_submit_button("회원가입", use_container_width=True)
-
-    if submitted:
-        _handle_signup(name, email, password, password_confirm)
-
-    # 로그인 링크
-    st.markdown("""
-    <div style="margin-top:18px;text-align:center;font-size:13px;color:#6B7894;">
-        이미 계정이 있으신가요?
-    </div>
-    """, unsafe_allow_html=True)
-
-    if st.button("로그인", key="go_login", use_container_width=True):
-        st.session_state["current_page"] = "login"
-        st.rerun()
+        """, unsafe_allow_html=True)
 
 
 # ── 회원가입 처리 ─────────────────────────────────────────────────────────────
