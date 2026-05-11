@@ -47,6 +47,16 @@ _MOCK_PARTS = [
         "confidence_score": 0.91,
     },
     {
+        "raw_part_name": "glabella",
+        "display_part_name": "미간",
+        "metric_name": "wrinkle",
+        "metric_display_name": "주름",
+        "issue_type": "wrinkle",
+        "grade_value": 2,
+        "severity": "moderate",
+        "confidence_score": 0.84,
+    },
+    {
         "raw_part_name": "left_eye",
         "display_part_name": "눈가",
         "metric_name": "wrinkle",

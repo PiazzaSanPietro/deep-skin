@@ -11,7 +11,8 @@ from styles.theme import SEVERITY_LABEL, SEVERITY_SCORE, MAIN_CONCERN_OPTIONS
 # ── 아이콘 헬퍼 ──────────────────────────────────────────────────────────────
 
 def _b64_src(rel: str) -> str:
-    path = os.path.join("assets", "icons", rel)
+    frontend_root = os.path.dirname(os.path.dirname(__file__))
+    path = os.path.join(frontend_root, "assets", "icons", rel)
     try:
         with open(path, "rb") as f:
             return "data:image/png;base64," + base64.b64encode(f.read()).decode()
@@ -37,10 +38,11 @@ _PART_ICON: dict[str, str] = {
     "입술": "skincare/lips_face.png",
     "턱":   "skincare/chin_face.png",
     "이마": "skincare/forehead_face.png",
+    "미간": "Glabella.png",
 }
 _PART_EMOJI: dict[str, str] = {
     "볼": "🫧", "눈가": "👁️", "입술": "👄",
-    "턱": "🫦", "이마": "😐", "전체": "🧖",
+    "턱": "🫦", "이마": "😐", "미간": "◌", "전체": "🧖",
 }
 
 
