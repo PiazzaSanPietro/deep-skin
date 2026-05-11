@@ -24,10 +24,16 @@ def show():
 
 def _ensure_profile_loaded():
     if "profile_form_data" not in st.session_state:
+        cached = st.session_state.get("profile_data")
+        if cached and not api_client.is_error(cached):
+            st.session_state["profile_form_data"] = cached
+            return
+
         token  = st.session_state.get("access_token")
         result = user_api.get_profile(token)
         if not api_client.is_error(result):
             st.session_state["profile_form_data"] = result
+            st.session_state["profile_data"] = result
         else:
             st.session_state["profile_form_data"] = {}
 
@@ -280,6 +286,7 @@ def _handle_save(
 
     show_success("프로필이 저장되었습니다.")
     st.session_state["profile_edit_from_login"] = False
+    st.session_state["profile_data"] = result
 
     if "profile_form_data" in st.session_state:
         del st.session_state["profile_form_data"]

@@ -9,6 +9,21 @@ from components import profile_cards
 # ── 진입점 ───────────────────────────────────────────────────────────────────
 
 def show():
+    profile = _get_profile()
+    if profile is None:
+        return
+
+    render_page_header(
+        "내 프로필",
+        "개인 정보를 확인하고 피부 분석 맞춤 설정을 관리하세요.",
+    )
+
+    if not user_api.is_profile_complete(profile):
+        st.info("프로필이 완성되지 않았습니다. 프로필을 먼저 입력해주세요.", icon="ℹ️")
+
+    _render_profile(profile)
+    return
+
     render_page_header(
         "내 프로필",
         "개인 정보를 확인하고 피부 분석 맞춤 설정을 관리하세요.",
@@ -32,6 +47,25 @@ def show():
 
 
 # ── 프로필 렌더링 ─────────────────────────────────────────────────────────────
+
+def _get_profile() -> dict | None:
+    cached = st.session_state.get("profile_data")
+    if cached and not api_client.is_error(cached):
+        return cached
+
+    token = st.session_state.get("access_token")
+    profile = user_api.get_profile(token)
+
+    if api_client.is_error(profile):
+        if profile.get("_status") == 401:
+            handle_401()
+            return None
+        show_error(api_client.get_error_message(profile))
+        return None
+
+    st.session_state["profile_data"] = profile
+    return profile
+
 
 def _render_profile(profile: dict):
     # 상단 프로필 헤더 카드 (전체 너비)

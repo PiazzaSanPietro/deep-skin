@@ -18,6 +18,7 @@ _DEFAULTS = {
     "current_user":            None,
     "current_session_id":      None,
     "last_report":             None,
+    "profile_data":            None,
     "profile_edit_from_login": False,
     "sidebar_collapsed":       False,
 }
@@ -86,6 +87,7 @@ def _restore_auth():
         profile = user_api.get_profile(at)
         if not api_client.is_error(profile):
             st.session_state["is_logged_in"] = True
+            st.session_state["profile_data"] = profile
             _restore_page(cp)
         elif profile.get("_status") == 401:
             _attempt_refresh(rt, cp, queue_save_tokens, auth_api, api_client)

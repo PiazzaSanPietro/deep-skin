@@ -50,13 +50,15 @@ def _reset_session():
     keys = [
         "access_token", "refresh_token", "is_logged_in",
         "current_user", "current_session_id", "last_report",
-        "profile_edit_from_login",
+        "profile_edit_from_login", "profile_data", "profile_form_data",
     ]
     for k in keys:
         st.session_state[k] = (
             None if ("token" in k or "user" in k or "report" in k or "session_id" in k)
             else False
         )
+    st.session_state["profile_data"] = None
+    st.session_state["profile_form_data"] = None
     st.session_state["is_logged_in"] = False
     st.session_state["profile_edit_from_login"] = False
     st.session_state["current_page"] = "login"
