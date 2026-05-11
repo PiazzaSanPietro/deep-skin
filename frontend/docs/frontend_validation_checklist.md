@@ -104,6 +104,10 @@ BACKEND_API_URL=http://localhost:8000
 - 볼/눈가/이마/입술/턱 카드 표시
 - normal 상태도 표시
 - severe 상태가 강조 표시
+- `current_session_id`가 있으면 `GET /analysis/sessions/{session_id}/report`로 리포트가 표시되는지
+- 로그아웃 후 같은 계정으로 재로그인하고 리포트 메뉴에 들어갔을 때 `GET /analysis/reports/latest`로 최신 완료 리포트가 복구되는지
+- 최신 리포트 복구 성공 시 `current_session_id`와 `last_report`가 다시 채워지는지
+- 분석 이력이 없는 계정에서는 최신 리포트 API 404 후 "분석 결과 없음" 상태가 표시되는지
 
 #### 회귀값 표시 확인 항목
 

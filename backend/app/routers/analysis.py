@@ -40,6 +40,23 @@ def create_session(
 
 
 @router.get(
+    "/reports/latest",
+    response_model=ReportResponse,
+    summary="최신 완료 분석 리포트 조회",
+    description=(
+        "현재 로그인한 사용자 기준 가장 최근 completed 분석 세션을 찾아 "
+        "기존 리포트 응답 구조로 반환한다. "
+        "session_id를 알 수 없는 재로그인 복구 흐름에서 사용한다."
+    ),
+)
+def get_latest_session_report(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    return report_service.get_latest_report(db, current_user.id)
+
+
+@router.get(
     "/sessions/{session_id}/report",
     response_model=ReportResponse,
     summary="분석 리포트 조회",

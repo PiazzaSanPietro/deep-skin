@@ -236,14 +236,17 @@ def _check_profile_and_route():
     status = profile.get("_status")
 
     if status == 404:
+        st.session_state.pop("profile_data", None)
         st.session_state["profile_edit_from_login"] = True
         st.session_state["current_page"] = "profile_edit"
     elif api_client.is_error(profile):
         st.session_state["current_page"] = "analysis"
     elif user_api.is_profile_complete(profile):
+        st.session_state["profile_data"] = profile
         st.session_state["profile_edit_from_login"] = False
         st.session_state["current_page"] = "analysis"
     else:
+        st.session_state["profile_data"] = profile
         st.session_state["profile_edit_from_login"] = True
         st.session_state["current_page"] = "profile_edit"
 

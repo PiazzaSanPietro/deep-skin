@@ -30,16 +30,19 @@ def show():
         _render_header()
 
         if state == "analyzing":
+            _hide_idle_analysis_ui()
             _render_steps("analyzing")
             _continue_analysis()
             return
 
         if state == "complete":
+            _hide_idle_analysis_ui()
             _render_steps("complete")
             _render_complete()
             return
 
         if state == "error":
+            _hide_idle_analysis_ui()
             _render_steps("error")
             _render_error()
             return
@@ -55,6 +58,40 @@ def _ensure_state():
     st.session_state.setdefault("analysis_flow_state", "idle")
     st.session_state.setdefault("analysis_image_data", None)
     st.session_state.setdefault("analysis_error_message", "")
+
+
+def _hide_idle_analysis_ui():
+    """Hide stale upload-screen DOM while Streamlit is rendering a state screen."""
+    st.markdown(
+        """
+        <style>
+        .st-key-ds_camera_card,
+        .st-key-ds_upload_card,
+        [data-testid="stHorizontalBlock"]:has(.st-key-ds_camera_card),
+        [data-testid="stHorizontalBlock"]:has(.st-key-ds_upload_card),
+        [data-testid="stHorizontalBlock"]:has(.ds-analysis-guide-card),
+        [data-testid="stElementContainer"]:has(.ds-analysis-guide-wrap),
+        [data-testid="stElementContainer"]:has(.ds-analysis-guide-card),
+        [data-testid="stElementContainer"]:has(.ds-analysis-privacy),
+        .ds-preview-frame,
+        .ds-analysis-guide-wrap,
+        .ds-analysis-guide-card,
+        .st-key-ds_analysis_action,
+        .ds-analysis-privacy {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            max-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            pointer-events: none !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_header():

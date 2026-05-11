@@ -45,11 +45,28 @@ backend/
    - part_recommendations 저장
 6. GET /analysis/sessions/{session_id}/report
    - 전체 요약 + 부위별 리포트 반환
-7. GET /recommendations/sessions/{session_id}
+7. GET /analysis/reports/latest
+   - 현재 로그인 사용자 기준 최신 completed 리포트 반환
+   - 재로그인 후 프론트의 current_session_id가 비어 있을 때 리포트 복구에 사용
+8. GET /recommendations/sessions/{session_id}
    - 저장된 추천 결과 반환
 ```
 
 개발용 JSON 흐름은 5번 대신 `POST /dev/analysis/sessions/{session_id}/json`을 사용합니다.
+
+## 최신 리포트 복구 흐름
+
+로그아웃 시 프론트의 `current_session_id`와 `last_report`는 초기화됩니다. 재로그인 후에는 이전 `session_id`를 클라이언트 저장소에서 복구하지 않고, 백엔드가 현재 로그인한 사용자의 최신 완료 세션을 조회합니다.
+
+```text
+GET /analysis/reports/latest
+  -> access token에서 current_user 확인
+  -> analysis_sessions에서 user_id=current_user.id, status='completed' 조건 조회
+  -> analyzed_at DESC, updated_at DESC, created_at DESC 순서로 최신 세션 선택
+  -> report_service.get_report(session_id, user_id)와 동일한 ReportResponse 반환
+```
+
+이 방식은 로그아웃 후 다른 계정으로 로그인했을 때 localStorage에 남은 `session_id`가 섞이는 문제를 피하기 위한 현재 기준입니다.
 
 ## AI 추론 모드
 

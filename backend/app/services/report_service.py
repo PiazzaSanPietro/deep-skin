@@ -1,9 +1,14 @@
 from collections import defaultdict
 from typing import Optional
 
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import session_access_denied, session_not_found
+from app.core.exceptions import (
+    completed_report_not_found,
+    session_access_denied,
+    session_not_found,
+)
 from app.models.analysis_session import AnalysisSession
 from app.models.part_recommendation import PartRecommendation
 from app.models.skin_part_result import SkinPartResult
@@ -18,6 +23,26 @@ from app.schemas.report import (
 )
 
 _SEVERITY_ORDER = {"normal": 0, "mild": 1, "moderate": 2, "severe": 3}
+
+
+def get_latest_report(db: Session, user_id: int) -> ReportResponse:
+    session = (
+        db.query(AnalysisSession)
+        .filter(
+            AnalysisSession.user_id == user_id,
+            AnalysisSession.status == "completed",
+        )
+        .order_by(
+            desc(AnalysisSession.analyzed_at),
+            desc(AnalysisSession.updated_at),
+            desc(AnalysisSession.created_at),
+        )
+        .first()
+    )
+    if session is None:
+        raise completed_report_not_found()
+
+    return get_report(db, session.id, user_id)
 
 
 def get_report(db: Session, session_id: int, user_id: int) -> ReportResponse:

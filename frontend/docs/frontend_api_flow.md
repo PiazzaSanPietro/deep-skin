@@ -26,6 +26,7 @@ BACKEND_API_URL=http://localhost:8000
 ```
 
 기본 리포트 화면은 `GET /analysis/sessions/{session_id}/report` 응답을 기준으로 구성한다.
+단, 로그아웃/재로그인 후처럼 `current_session_id`가 비어 있으면 먼저 `GET /analysis/reports/latest`를 호출해 현재 로그인 사용자의 최신 완료 리포트를 복구한다.
 
 추천 결과 API(`GET /recommendations/sessions/{session_id}`)는 리포트 화면에서 별도 조회가 필요할 때만 사용하는 보조 API다.
 
@@ -220,6 +221,26 @@ session_id를 유지한다.
 ```http
 GET /analysis/sessions/{session_id}/report
 ```
+
+#### 재로그인 후 최신 리포트 복구 API
+
+```http
+GET /analysis/reports/latest
+```
+
+#### 호출 기준
+
+```text
+current_session_id 있음
+  -> GET /analysis/sessions/{session_id}/report
+
+current_session_id 없음
+  -> GET /analysis/reports/latest
+     성공: response.session_id를 current_session_id로 복구하고 last_report 저장
+     404: 분석 결과 없음 상태 표시
+```
+
+`session_id`는 분석마다 새로 생성되므로 localStorage에 저장해서 복구하지 않는다. 로그아웃 후 다른 계정으로 로그인할 수 있기 때문에, 현재 로그인 사용자 기준으로 백엔드가 최신 `completed` 세션을 찾는 방식이 기준이다.
 
 #### 응답 주요 구조
 ```json

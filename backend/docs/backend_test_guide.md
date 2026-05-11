@@ -97,8 +97,9 @@ Swagger 또는 HTTP client에서 아래 순서로 확인합니다.
 4. `PUT /users/me/profile`
 5. `POST /analysis/sessions`
 6. `POST /analysis/sessions/{session_id}/images`
-7. `GET /recommendations/sessions/{session_id}`
-8. `GET /analysis/sessions/{session_id}/report`
+7. `GET /analysis/sessions/{session_id}/report`
+8. `GET /analysis/reports/latest`
+9. `GET /recommendations/sessions/{session_id}`
 
 개발용 JSON 흐름은 6번 대신 아래 API를 사용합니다.
 
@@ -141,6 +142,8 @@ Mock 모드 기준:
 - `part_recommendations` 생성
 - 추천 API가 `recommendations` 배열 반환
 - 리포트 API가 `overall_summary`, `part_reports` 반환
+- 최신 리포트 API(`GET /analysis/reports/latest`)가 현재 로그인 사용자의 가장 최근 `completed` 리포트를 반환
+- 완료된 분석 이력이 없는 사용자로 최신 리포트 API 호출 시 404 반환
 
 Remote 모드 기준:
 
