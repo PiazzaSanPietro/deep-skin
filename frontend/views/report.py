@@ -171,10 +171,13 @@ def _render_summary_card(overall: dict, score: int, analyzed_at: str):
 
 def _render_part_grid(part_reports: list[dict]):
     parts = _sort_parts(part_reports)
-    cols = st.columns(min(len(parts), 5), gap="medium")
-    for col, part in zip(cols, parts):
-        with col:
-            st.markdown(_part_card_html(part), unsafe_allow_html=True)
+    max_cols = 6
+    for start in range(0, len(parts), max_cols):
+        row = parts[start:start + max_cols]
+        cols = st.columns(len(row), gap="medium")
+        for col, part in zip(cols, row):
+            with col:
+                st.markdown(_part_card_html(part), unsafe_allow_html=True)
 
 
 def _render_detail_expanders(part_reports: list[dict]):
@@ -307,7 +310,7 @@ def _extend_unique(target: list[str], items: list[str]):
 
 
 def _sort_parts(part_reports: list[dict]) -> list[dict]:
-    order = ["볼", "눈가", "입술", "턱", "이마"]
+    order = ["눈가", "볼", "턱", "입술", "이마", "미간", "전체 얼굴"]
 
     def key(part: dict):
         name = part.get("display_part_name", "")
@@ -316,7 +319,7 @@ def _sort_parts(part_reports: list[dict]) -> list[dict]:
                 return idx
         return len(order)
 
-    return sorted(part_reports, key=key)[:5]
+    return sorted(part_reports, key=key)
 
 
 def _worst_severity(issues: list[dict]) -> str:
@@ -364,6 +367,7 @@ def _part_summary(severity: str) -> str:
 
 def _part_icon(name: str) -> str:
     icon_map = {
+        "미간": "Glabella.png",
         "볼": "cheek.png",
         "눈": "eye_rim.png",
         "입": "lips.png",
@@ -379,7 +383,8 @@ def _part_icon(name: str) -> str:
 
 
 def _icon_src(filename: str) -> str:
-    path = os.path.join("assets", "icons", filename)
+    frontend_root = os.path.dirname(os.path.dirname(__file__))
+    path = os.path.join(frontend_root, "assets", "icons", filename)
     try:
         with open(path, "rb") as f:
             return "data:image/png;base64," + base64.b64encode(f.read()).decode()
