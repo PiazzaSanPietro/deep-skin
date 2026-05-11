@@ -585,7 +585,7 @@ checkpoints/trained/<target>_best.pth
 
 For the latest operational summary, see:
 
-- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+- [cheek_current_training_setup.md](cheek_current_training_setup.md)
 # Appendix: Current Code Override
 
 notebooks/jh 하위의 현재 구현은 학습 스택의 실질적인 기준으로 간주되어야 합니다.
@@ -646,4 +646,4 @@ checkpoints/trained/<target>_best.pth
 
 최신 통합 요약은 다음을 참조하십시오:
 
-- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+- [cheek_current_training_setup.md](cheek_current_training_setup.md)
