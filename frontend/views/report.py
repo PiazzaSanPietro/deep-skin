@@ -21,8 +21,14 @@ def show():
     st.markdown('<div id="ds-report-page-sentinel"></div>', unsafe_allow_html=True)
     _render_report_header()
 
+    token = st.session_state.get("access_token")
     session_id = st.session_state.get("current_session_id")
     if not session_id:
+        report = _load_latest_report(token)
+        if report is not None:
+            _render_report(report)
+            return
+
         empty_state("분석 결과가 없습니다. 먼저 이미지를 업로드해주세요.")
         col_btn, _ = st.columns([1, 2])
         with col_btn:
@@ -31,7 +37,6 @@ def show():
                 st.rerun()
         return
 
-    token = st.session_state.get("access_token")
     loading_slot = st.empty()
     loading_slot.markdown(_report_loading_markup(), unsafe_allow_html=True)
     report = analysis_api.get_report(token, session_id)
@@ -44,7 +49,30 @@ def show():
         show_error(api_client.get_error_message(report))
         return
 
+    st.session_state["last_report"] = report
     _render_report(report)
+
+
+def _load_latest_report(token: str | None) -> dict | None:
+    loading_slot = st.empty()
+    loading_slot.markdown(_report_loading_markup(), unsafe_allow_html=True)
+    report = analysis_api.get_latest_report(token)
+    loading_slot.empty()
+
+    if api_client.is_error(report):
+        if report.get("_status") == 401:
+            handle_401()
+            return None
+        if report.get("_status") == 404:
+            return None
+        show_error(api_client.get_error_message(report))
+        st.stop()
+
+    session_id = report.get("session_id")
+    if session_id:
+        st.session_state["current_session_id"] = session_id
+    st.session_state["last_report"] = report
+    return report
 
 
 def _prepare_report_page_state():

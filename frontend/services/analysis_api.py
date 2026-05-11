@@ -21,3 +21,7 @@ def upload_image(
 
 def get_report(token: str, session_id: int) -> dict:
     return api_client.get(f"/analysis/sessions/{session_id}/report", token=token)
+
+
+def get_latest_report(token: str) -> dict:
+    return api_client.get("/analysis/reports/latest", token=token)
