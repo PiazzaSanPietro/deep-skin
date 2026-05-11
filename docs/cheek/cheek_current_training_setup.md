@@ -14,7 +14,7 @@
 
 이 규칙은 다음 파일에서 적용된다.
 
-- [crop.py](C:/PROJECT/Deep_skin/notebooks/jh/crop.py)
+- [crop.py](../../notebooks/jh/crop.py)
 
 ## 현재 파일 역할 (Current File Roles)
 
@@ -142,7 +142,7 @@ checkpoints/trained/pigmentation_best.pth
 
 현재 마진 정책은 다음에서 구현된다.:
 
-- [crop.py](C:/PROJECT/Deep_skin/notebooks/jh/crop.py)
+- [crop.py](../../notebooks/jh/crop.py)
 
 ### Resize and padding
 
@@ -156,7 +156,7 @@ checkpoints/trained/pigmentation_best.pth
 
 이는 다음에서 구현된다:
 
-- [dataset.py](C:/PROJECT/Deep_skin/notebooks/jh/dataset.py)
+- [dataset.py](../../notebooks/jh/dataset.py)
 
 ## 현재 학습 명령
 
