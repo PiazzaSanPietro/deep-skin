@@ -25,6 +25,8 @@ class PartResult(BaseModel):
     metric_display_name: str
     issue_type: str
     grade_value: int
+    predicted_value: Optional[float] = None
+    measured_value: Optional[float] = None
     severity: str
     confidence_score: float
 

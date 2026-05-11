@@ -134,6 +134,8 @@ async def upload_image(
                 metric_display_name=part.metric_display_name,
                 issue_type=part.issue_type,
                 grade_value=part.grade_value,
+                predicted_value=part.predicted_value,
+                measured_value=part.measured_value,
                 severity=part.severity,
                 confidence_score=part.confidence_score,
                 model_name=result.model_name,

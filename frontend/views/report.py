@@ -269,14 +269,30 @@ def _recommendation_card_html(title: str, subtitle: str, items: list[str], kind:
     )
 
 
+def _get_detail_value_label(issue: dict) -> tuple[str | None, float | None]:
+    measured = issue.get("measured_value")
+    predicted = issue.get("predicted_value")
+    if measured is not None:
+        return "측정값", float(measured)
+    if predicted is not None:
+        return "예측값", float(predicted)
+    return None, None
+
+
 def _issue_row_html(issue: dict) -> str:
     label = issue.get("metric_display_name") or _issue_label(issue) or "분석 항목"
     severity = issue.get("severity", "normal")
     grade = issue.get("grade_value")
     grade_text = f"등급 {grade}" if grade is not None else SEVERITY_LABEL.get(severity, severity)
+    value_label, value = _get_detail_value_label(issue)
+    detail_html = (
+        f'<span class="ds-detail-value">{html.escape(value_label)}: {value:.2f}</span>'
+        if value_label is not None
+        else ""
+    )
     return (
         '<div class="ds-detail-issue-row">'
-        f'<div><strong>{html.escape(label)}</strong><span>{html.escape(grade_text)}</span></div>'
+        f'<div><strong>{html.escape(label)}</strong><span>{html.escape(grade_text)}</span>{detail_html}</div>'
         f'{_badge_html(SEVERITY_LABEL.get(severity, severity), severity)}'
         '</div>'
     )

@@ -105,6 +105,14 @@ BACKEND_API_URL=http://localhost:8000
 - normal 상태도 표시
 - severe 상태가 강조 표시
 
+#### 회귀값 표시 확인 항목
+
+- `part_reports[].issues[].predicted_value`가 null이 아니면 "예측값: X.XX" 형태로 표시되는지
+- `part_reports[].issues[].measured_value`가 null이 아니면 "측정값: X.XX" 형태로 표시되는지
+- `predicted_value`와 `measured_value`가 모두 null이면 기존 `grade_value` / `severity` 화면이 깨지지 않는지
+- `measured_value`와 `predicted_value`가 동시에 null이 아닌 경우 `measured_value` 우선 표시 여부 확인
+- 표시 라벨이 `predicted_value` / `measured_value` 필드명 그대로가 아닌 "예측값" / "측정값"으로 변환되는지
+
 ### 8. 로그아웃 테스트
 
 확인 항목:

@@ -180,6 +180,24 @@ mild     → 약한 관리 필요
 moderate → 관리 필요
 severe   → 집중 관리 필요
 ```
+
+#### 상세 수치 표시
+
+부위별 카드에서 `predicted_value` 또는 `measured_value`가 있을 경우 상세 수치를 표시한다.
+
+표시 예시:
+```
+측정값: 2.73
+예측값: 0.62
+```
+
+디자인 기준:
+- `severity` 배지보다 작고 차분한 텍스트 크기로 표시 (Text Sub 컬러: `#6B7280`)
+- 카드 하단 또는 issue 항목 내 보조 정보 영역에 배치
+- "측정값" / "예측값" 라벨 사용 — `predicted_value` / `measured_value` 필드명을 그대로 노출하지 않는다
+- 두 값이 모두 null이면 이 영역을 표시하지 않는다 (기존 화면과 동일)
+- `measured_value` 우선, 없으면 `predicted_value` 표시 (동시에 표시하지 않음)
+
 #### 참고 이미지
 `frontend/assets/ui_references/report_reference.png`
 
@@ -261,8 +279,16 @@ raw_part_name
 model_name
 model_version
 json_record_id
+confidence_score
 ```
 필요하면 개발용 expander 안에만 표시한다.
+
+아래 값은 **표시 가능** 값이지만 사용자 친화적 라벨로 변환하여 표시한다.
+```
+predicted_value  →  "예측값"으로 표시
+measured_value   →  "측정값"으로 표시
+```
+두 값이 모두 null이면 표시하지 않는다.
 
 ## 문서 갱신 규칙
 
