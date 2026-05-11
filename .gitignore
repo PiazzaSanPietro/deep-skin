@@ -209,3 +209,6 @@ results/*
 .ignore
 backend/scripts/dinov3_vits16plus_pretrain_lvd1689m-4057cbaa.pth
 backend/scripts/facepart_03_test/0001_01_F.jpg
+
+# SQLite fallback (should not exist — project uses MySQL)
+backend/*.db
