@@ -85,6 +85,15 @@ def render_sidebar():
                     <div class="ds-sidebar-info-text">
                         AI로 당신의 피부를<br>더 깊이 이해하세요.
                     </div>
+                    <div class="ds-sidebar-quota">
+                        <div class="ds-sidebar-quota-row">
+                            <span>오늘의 분석 가능 횟수</span>
+                            <strong>3/5</strong>
+                        </div>
+                        <div class="ds-sidebar-quota-track">
+                            <div class="ds-sidebar-quota-fill"></div>
+                        </div>
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True,

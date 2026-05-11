@@ -128,6 +128,14 @@ def _attempt_refresh(rt, cp, queue_save_tokens, auth_api, api_client):
 
 def _sync_query_params():
     """session_state 의 page / session_id 를 URL query_params 에 반영."""
+    requested_page = st.query_params.get("page")
+    if (
+        requested_page in {"login", "signup"}
+        and not st.session_state.get("is_logged_in")
+        and st.session_state.get("current_page") != requested_page
+    ):
+        st.session_state["current_page"] = requested_page
+
     page = st.session_state.get("current_page", "login")
     if st.query_params.get("page") != page:
         st.query_params["page"] = page
