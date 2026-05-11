@@ -26,6 +26,7 @@ Authorization: Bearer <access_token>
 | POST | `/analysis/sessions` | Yes | `analysis.py` | 분석 세션 생성 |
 | POST | `/analysis/sessions/{session_id}/images` | Yes | `images.py` | 이미지 업로드 및 분석 |
 | GET | `/analysis/sessions/{session_id}/report` | Yes | `analysis.py` | 분석 리포트 조회 |
+| GET | `/analysis/reports/latest` | Yes | `analysis.py` | 현재 로그인 사용자의 최신 완료 리포트 조회 |
 | GET | `/recommendations/sessions/{session_id}` | Yes | `recommendations.py` | 추천 결과 조회 |
 | POST | `/dev/analysis/sessions/{session_id}/json` | Yes | `dev.py` | 개발용 AI-Hub JSON 입력 |
 
@@ -266,6 +267,48 @@ Response:
 ```
 
 세션 상태가 `completed`가 아니면 `part_reports`는 빈 배열로 반환됩니다.
+
+### GET `/analysis/reports/latest`
+
+재로그인 등으로 프론트의 `current_session_id`가 비어 있을 때 사용하는 복구용 API입니다.
+프론트가 `session_id`를 보내지 않으며, 백엔드는 access token의 현재 사용자 기준으로 가장 최근 `completed` 분석 세션을 찾아 기존 리포트 응답 구조 그대로 반환합니다.
+
+조회 기준:
+
+```sql
+analysis_sessions.user_id = current_user.id
+analysis_sessions.status = 'completed'
+ORDER BY analyzed_at DESC, updated_at DESC, created_at DESC
+LIMIT 1
+```
+
+Response `200`:
+
+```json
+{
+  "session_id": 49,
+  "status": "completed",
+  "overall_summary": {
+    "status": "집중 관리 필요",
+    "main_message": "눈가 부위의 주름 관리가 필요합니다.",
+    "main_issues": []
+  },
+  "part_reports": []
+}
+```
+
+완료된 분석 리포트가 없으면 `404 Not Found`를 반환합니다.
+
+```json
+{
+  "detail": {
+    "error_code": "COMPLETED_REPORT_NOT_FOUND",
+    "message": "완료된 분석 리포트가 없습니다."
+  }
+}
+```
+
+기존 `GET /analysis/sessions/{session_id}/report`는 분석 직후처럼 특정 `session_id`를 알고 있을 때 계속 사용합니다.
 
 ## Recommendations
 

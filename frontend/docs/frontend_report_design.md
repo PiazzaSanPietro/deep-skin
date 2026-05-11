@@ -13,6 +13,14 @@
 GET /analysis/sessions/{session_id}/report
 ```
 
+재로그인 후처럼 프론트의 `current_session_id`가 없는 경우에는 아래 API로 최신 완료 리포트를 먼저 복구한다.
+
+```http
+GET /analysis/reports/latest
+```
+
+복구 성공 시 응답의 `session_id`를 `st.session_state["current_session_id"]`에 저장하고, 전체 응답을 `st.session_state["last_report"]`에 저장한 뒤 동일한 리포트 UI로 렌더링한다. 404가 반환될 때만 "분석 결과 없음" 상태를 표시한다.
+
 ## 리포트 응답 구조
 
 주요 응답 구조는 다음과 같다.

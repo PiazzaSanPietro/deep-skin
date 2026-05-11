@@ -179,6 +179,7 @@ frontend/assets/ui_references/
 - POST /analysis/sessions
 - POST /analysis/sessions/{session_id}/images
 - GET /analysis/sessions/{session_id}/report
+- GET /analysis/reports/latest
 
 ```services/recommendation_api.py```
 추천 결과 API 호출 함수 파일이다.

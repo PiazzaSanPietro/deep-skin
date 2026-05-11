@@ -105,6 +105,8 @@ localStorage 대신 query_params를 사용하므로 JS 없이 동기적으로 �
 | `page` | 현재 페이지 이름 |
 | `sid` | current_session_id |
 
+`sid`는 현재 브라우저 세션에서 편의상 유지하는 값이며, 로그아웃 후 다른 계정으로 로그인할 수 있으므로 localStorage에 영구 저장하지 않는다. 재로그인 후 `current_session_id`가 비어 있는 상태에서 리포트 화면에 들어가면 `GET /analysis/reports/latest`로 현재 로그인 사용자의 최신 완료 리포트를 복구한다.
+
 `_sync_query_params()`가 매 render 마다 session_state 값으로 동기화한다.
 
 ---
@@ -147,6 +149,13 @@ auth_api.logout(token)   # POST /auth/logout
 queue_clear_tokens()     # localStorage 삭제 예약
 _reset_session()         # session_state 초기화 + query_params.clear()
 st.rerun()
+```
+
+로그아웃 시 `current_session_id`와 `last_report`도 초기화된다. 이후 같은 계정으로 다시 로그인해 리포트 메뉴에 들어가면 프론트는 기존 `session_id`를 저장소에서 찾지 않고, 백엔드 최신 리포트 API를 호출해 아래 값을 다시 채운다.
+
+```python
+st.session_state["current_session_id"] = latest_report["session_id"]
+st.session_state["last_report"] = latest_report
 ```
 
 ---
