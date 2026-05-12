@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 import matplotlib
@@ -18,6 +19,19 @@ CHECKPOINT_ROOT = PROJECT_ROOT / "checkpoints" / "trained" / "dy_forehead_glabel
 ASSET_DIR = PROJECT_ROOT / "results" / "dy_forehead_glabella" / "presentation_assets"
 
 
+def _safe_output_path(output_name: str) -> Path:
+    output_path = ASSET_DIR / output_name
+    if not output_path.exists():
+        return output_path
+    try:
+        with open(output_path, "ab"):
+            pass
+        return output_path
+    except PermissionError:
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return output_path.with_name(f"{output_path.stem}_{stamp}{output_path.suffix}")
+
+
 def _load_histories() -> dict[str, pd.DataFrame]:
     runs = {
         "baseline_original": CHECKPOINT_ROOT / "dy_resnet50_cuda_full" / "history.csv",
@@ -25,7 +39,11 @@ def _load_histories() -> dict[str, pd.DataFrame]:
         "integrated_3grade": CHECKPOINT_ROOT / "dy_resnet50_3grade_v1" / "history.csv",
         "integrated_3grade_ordinal": CHECKPOINT_ROOT / "dy_resnet50_3grade_ordinal_v1" / "history.csv",
     }
-    return {name: pd.read_csv(path) for name, path in runs.items() if path.exists()}
+    histories = {name: pd.read_csv(path) for name, path in runs.items() if path.exists()}
+    for pattern in ("dy_resnet50_3grade*/history.csv", "dy_dinov3*/history.csv"):
+        for path in CHECKPOINT_ROOT.glob(pattern):
+            histories.setdefault(path.parent.name, pd.read_csv(path))
+    return histories
 
 
 def _best_row(history: pd.DataFrame) -> pd.Series:
@@ -37,7 +55,7 @@ def save_3grade_curves(
     output_name: str = "07_3grade_training_curves.png",
     title: str = "3-grade integrated ResNet-50 training curve",
 ) -> Path:
-    output_path = ASSET_DIR / output_name
+    output_path = _safe_output_path(output_name)
     best = _best_row(history)
 
     fig, axes = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
@@ -65,9 +83,11 @@ def save_3grade_curves(
     axes[1].annotate(
         f"best epoch {int(best['epoch'])}\nF1 {best['val_mean_macro_f1']:.3f}",
         xy=(best["epoch"], best["val_mean_macro_f1"]),
-        xytext=(best["epoch"] + 0.5, best["val_mean_macro_f1"] - 0.08),
+        xytext=(0.66, 0.16),
+        textcoords="axes fraction",
         arrowprops={"arrowstyle": "->", "color": "#333333"},
         fontsize=10,
+        bbox={"boxstyle": "round,pad=0.35", "facecolor": "white", "edgecolor": "#bbbbbb", "alpha": 0.92},
     )
     axes[1].set_xlabel("Epoch")
     axes[1].set_ylabel("Macro F1")
@@ -86,7 +106,7 @@ def save_task_metrics(
     output_name: str = "08_3grade_task_metrics.png",
     title: str = "Best validation metrics by task (3-grade)",
 ) -> tuple[Path, list[dict[str, float | str]]]:
-    output_path = ASSET_DIR / output_name
+    output_path = _safe_output_path(output_name)
     rows: list[dict[str, float | str]] = []
     for task, label in [
         ("forehead_pigmentation", "Forehead pigmentation"),
@@ -123,7 +143,7 @@ def save_task_metrics(
 
 
 def save_model_comparison(histories: dict[str, pd.DataFrame]) -> Path:
-    output_path = ASSET_DIR / "10_model_comparison_3grade.png"
+    output_path = _safe_output_path("10_model_comparison_3grade.png")
     run_labels = {
         "baseline_original": "Original labels\nbaseline",
         "regularized_original": "Original labels\nregularized",
@@ -132,10 +152,11 @@ def save_model_comparison(histories: dict[str, pd.DataFrame]) -> Path:
     }
     rows = []
     for name, history in histories.items():
+        label = run_labels.get(name, name.replace("dy_resnet50_", "").replace("_", "\n"))
         best = _best_row(history)
         rows.append(
             {
-                "run": run_labels[name],
+                "run": label,
                 "best_epoch": int(best["epoch"]),
                 "val_mean_macro_f1": float(best["val_mean_macro_f1"]),
                 "val_mean_acc": float(best["val_mean_acc"]),
@@ -143,6 +164,8 @@ def save_model_comparison(histories: dict[str, pd.DataFrame]) -> Path:
         )
 
     comparison_df = pd.DataFrame(rows)
+    if comparison_df.empty:
+        raise FileNotFoundError("No comparable history.csv files found.")
     comparison_df.to_csv(ASSET_DIR / "model_comparison_summary.csv", index=False, encoding="utf-8-sig")
 
     x = np.arange(len(comparison_df))
@@ -173,7 +196,7 @@ def save_model_comparison(histories: dict[str, pd.DataFrame]) -> Path:
 
 
 def save_crop_quality() -> Path:
-    output_path = ASSET_DIR / "09_crop_quality_check.png"
+    output_path = _safe_output_path("09_crop_quality_check.png")
     train_df = pd.read_csv(PROJECT_ROOT / "data" / "processed" / "dy_forehead_glabella_train_metadata.csv")
     val_df = pd.read_csv(PROJECT_ROOT / "data" / "processed" / "dy_forehead_glabella_val_metadata.csv")
     train_df["split"] = "train"
@@ -226,13 +249,31 @@ def save_crop_quality() -> Path:
 def main() -> None:
     ASSET_DIR.mkdir(parents=True, exist_ok=True)
     histories = _load_histories()
-    if "integrated_3grade" not in histories:
-        raise FileNotFoundError("Missing history for dy_resnet50_3grade_v1")
+    if not histories:
+        raise FileNotFoundError(
+            f"No history.csv files found under {CHECKPOINT_ROOT}. "
+            "Run notebooks/dy/train.py first."
+        )
 
-    history = histories["integrated_3grade"]
+    primary_name = max(
+        histories,
+        key=lambda name: float(_best_row(histories[name])["val_mean_macro_f1"]),
+    )
+
+    history = histories[primary_name]
     best = _best_row(history)
-    curves_path = save_3grade_curves(history)
-    task_path, task_rows = save_task_metrics(best)
+    is_ordinal = "ordinal" in primary_name
+    model_label = "DINOv3" if "dinov3" in primary_name else "ResNet-50"
+    curves_path = save_3grade_curves(
+        history,
+        output_name="11_3grade_ordinal_training_curves.png" if is_ordinal else "07_3grade_training_curves.png",
+        title=f"3-grade ordinal {model_label} training curve" if is_ordinal else f"3-grade integrated {model_label} training curve",
+    )
+    task_path, task_rows = save_task_metrics(
+        best,
+        output_name="12_3grade_ordinal_task_metrics.png" if is_ordinal else "08_3grade_task_metrics.png",
+        title="Best validation metrics by task (3-grade + ordinal)" if is_ordinal else "Best validation metrics by task (3-grade)",
+    )
     ordinal_summary = None
     if "integrated_3grade_ordinal" in histories:
         ordinal_history = histories["integrated_3grade_ordinal"]
@@ -264,15 +305,15 @@ def main() -> None:
     crop_path = save_crop_quality()
 
     summary = {
-        "run_name": "dy_resnet50_3grade_v1",
+        "run_name": primary_name,
         "grade_scheme": "three",
         "best_epoch": int(best["epoch"]),
         "best_val_mean_macro_f1": float(best["val_mean_macro_f1"]),
         "best_val_mean_acc": float(best["val_mean_acc"]),
         "task_metrics": task_rows,
         "artifacts": {
-            "history": str(CHECKPOINT_ROOT / "dy_resnet50_3grade_v1" / "history.csv"),
-            "best_checkpoint": str(CHECKPOINT_ROOT / "dy_resnet50_3grade_v1" / "best.pth"),
+            "history": str(CHECKPOINT_ROOT / primary_name / "history.csv"),
+            "best_checkpoint": str(CHECKPOINT_ROOT / primary_name / "best.pth"),
             "training_curves": str(curves_path),
             "task_metrics": str(task_path),
             "crop_quality": str(crop_path),

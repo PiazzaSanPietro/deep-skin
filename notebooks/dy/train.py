@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+from contextlib import nullcontext
 from datetime import datetime
 import json
 import logging
@@ -47,6 +48,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=16)
     parser.add_argument("--image-size", type=int, default=224)
     parser.add_argument("--learning-rate", type=float, default=1e-4)
+    parser.add_argument(
+        "--backbone-lr-mult",
+        type=float,
+        default=0.1,
+        help="Use a smaller LR for the pretrained ResNet backbone than for task heads.",
+    )
     parser.add_argument("--weight-decay", type=float, default=1e-3)
     parser.add_argument("--dropout-p", type=float, default=0.30)
     parser.add_argument("--projection-dim", type=int, default=512)
@@ -59,6 +66,12 @@ def parse_args() -> argparse.Namespace:
         help="Use original labels or grouped low/middle/high 3-class labels.",
     )
     parser.add_argument("--label-smoothing", type=float, default=0.05)
+    parser.add_argument(
+        "--focal-gamma",
+        type=float,
+        default=0.0,
+        help="Optional focal-loss gamma for imbalanced classes. 0 keeps standard cross entropy.",
+    )
     parser.add_argument(
         "--class-weight-power",
         type=float,
@@ -117,6 +130,25 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--checkpoint-dir", type=Path, default=None)
     parser.add_argument("--run-name", type=str, default="")
     parser.add_argument("--resume", type=Path, default=None)
+    parser.add_argument(
+        "--max-train-rows",
+        type=int,
+        default=0,
+        help="Use only the first N train rows for a quick smoke/diagnostic run.",
+    )
+    parser.add_argument(
+        "--max-val-rows",
+        type=int,
+        default=0,
+        help="Use only the first N validation rows for a quick smoke/diagnostic run.",
+    )
+    parser.add_argument("--amp", action="store_true", help="Use mixed precision on CUDA.")
+    parser.add_argument(
+        "--grad-clip-norm",
+        type=float,
+        default=1.0,
+        help="Clip gradients to stabilize fine-tuning. Set 0 to disable.",
+    )
     return parser.parse_args()
 
 
@@ -161,6 +193,16 @@ def save_regression_stats(stats: dict[str, dict[str, float]], path: Path) -> Non
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def subset_csv(source: Path, destination: Path, max_rows: int) -> Path:
+    if max_rows <= 0:
+        return source
+    df = pd.read_csv(source).head(max_rows)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(destination, index=False, encoding="utf-8-sig")
+    logger.info("subset csv saved: %s (%d rows from %s)", destination, len(df), source)
+    return destination
 
 
 def build_dataloaders(
@@ -306,6 +348,7 @@ def classification_loss(
     class_weights: dict[str, torch.Tensor],
     label_smoothing: float,
     ordinal_loss_weight: float,
+    focal_gamma: float = 0.0,
 ) -> tuple[torch.Tensor, dict[str, float]]:
     total = targets.new_tensor(0.0, dtype=torch.float32)
     pieces: dict[str, float] = {}
@@ -320,12 +363,18 @@ def classification_loss(
             continue
         logits = cls_outputs[task.name][mask]
         active_targets = task_targets[mask]
-        loss = F.cross_entropy(
+        ce_loss = F.cross_entropy(
             logits,
             active_targets,
             weight=class_weights.get(task.name),
             label_smoothing=label_smoothing,
+            reduction="none",
         )
+        if focal_gamma and focal_gamma > 0:
+            probs = F.softmax(logits, dim=1)
+            pt = probs.gather(1, active_targets.view(-1, 1)).squeeze(1).clamp_min(1e-6)
+            ce_loss = ((1.0 - pt) ** focal_gamma) * ce_loss
+        loss = ce_loss.mean()
         if ordinal_loss_weight > 0:
             class_indices = torch.arange(logits.size(1), device=logits.device, dtype=logits.dtype)
             expected_grade = (F.softmax(logits, dim=1) * class_indices).sum(dim=1)
@@ -355,6 +404,58 @@ def regression_loss(
         return pred.new_tensor(0.0)
     loss = F.smooth_l1_loss(pred, targets, reduction="none")
     return loss[mask].mean()
+
+
+def build_optimizer(
+    model: torch.nn.Module,
+    learning_rate: float,
+    backbone_lr_mult: float,
+    weight_decay: float,
+) -> torch.optim.Optimizer:
+    backbone_params: list[torch.nn.Parameter] = []
+    head_params: list[torch.nn.Parameter] = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if name.startswith("backbone."):
+            backbone_params.append(param)
+        else:
+            head_params.append(param)
+
+    param_groups: list[dict[str, Any]] = []
+    if backbone_params:
+        param_groups.append(
+            {
+                "params": backbone_params,
+                "lr": learning_rate * backbone_lr_mult,
+                "weight_decay": weight_decay,
+            }
+        )
+    if head_params:
+        param_groups.append(
+            {
+                "params": head_params,
+                "lr": learning_rate,
+                "weight_decay": weight_decay,
+            }
+        )
+    if not param_groups:
+        raise ValueError("No trainable parameters found.")
+    return torch.optim.AdamW(param_groups)
+
+
+def make_grad_scaler(use_amp: bool) -> Any:
+    if hasattr(torch, "amp") and hasattr(torch.amp, "GradScaler"):
+        return torch.amp.GradScaler("cuda", enabled=use_amp)
+    return torch.cuda.amp.GradScaler(enabled=use_amp)
+
+
+def autocast_context(use_amp: bool) -> Any:
+    if not use_amp:
+        return nullcontext()
+    if hasattr(torch, "amp") and hasattr(torch.amp, "autocast"):
+        return torch.amp.autocast("cuda")
+    return torch.cuda.amp.autocast()
 
 
 def macro_f1_score(y_true: list[int], y_pred: list[int], num_classes: int) -> float:
@@ -460,6 +561,7 @@ def run_epoch(
     regression_stats: dict[str, dict[str, float]],
     args: argparse.Namespace,
     optimizer: torch.optim.Optimizer | None = None,
+    scaler: Any | None = None,
 ) -> dict[str, float]:
     training = optimizer is not None
     model.train(training)
@@ -473,7 +575,8 @@ def run_epoch(
         if training:
             optimizer.zero_grad(set_to_none=True)
 
-        with torch.set_grad_enabled(training):
+        use_amp = bool(args.amp and device.type == "cuda")
+        with torch.set_grad_enabled(training), autocast_context(use_amp):
             outputs = model(batch["image"])
             cls_loss, _ = classification_loss(
                 outputs=outputs,
@@ -481,6 +584,7 @@ def run_epoch(
                 class_weights=class_weights,
                 label_smoothing=args.label_smoothing,
                 ordinal_loss_weight=args.ordinal_loss_weight,
+                focal_gamma=args.focal_gamma,
             )
             reg_loss = regression_loss(
                 outputs=outputs,
@@ -488,8 +592,18 @@ def run_epoch(
                 mask=batch["reg_mask"],
             )
             loss = (args.cls_loss_weight * cls_loss) + (args.reg_loss_weight * reg_loss)
-            if training:
+        if training:
+            if scaler is not None and use_amp:
+                scaler.scale(loss).backward()
+                if args.grad_clip_norm and args.grad_clip_norm > 0:
+                    scaler.unscale_(optimizer)
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip_norm)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
                 loss.backward()
+                if args.grad_clip_norm and args.grad_clip_norm > 0:
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip_norm)
                 optimizer.step()
 
         update_metric_buffers(buffers, outputs, batch, loss, regression_stats)
@@ -625,6 +739,18 @@ def train(args: argparse.Namespace) -> None:
     checkpoint_dir = resolve_checkpoint_dir(args)
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
     args.checkpoint_dir = checkpoint_dir
+    if args.max_train_rows > 0:
+        args.train_csv = subset_csv(
+            args.train_csv,
+            checkpoint_dir / f"train_subset_{args.max_train_rows}.csv",
+            args.max_train_rows,
+        )
+    if args.max_val_rows > 0:
+        args.val_csv = subset_csv(
+            args.val_csv,
+            checkpoint_dir / f"val_subset_{args.max_val_rows}.csv",
+            args.max_val_rows,
+        )
 
     regression_stats = build_regression_stats(args.train_csv)
     save_regression_stats(regression_stats, checkpoint_dir / "regression_stats.json")
@@ -652,11 +778,18 @@ def train(args: argparse.Namespace) -> None:
         args.freeze_until,
     )
 
-    trainable_params = [param for param in model.parameters() if param.requires_grad]
-    optimizer = torch.optim.AdamW(
-        trainable_params,
-        lr=args.learning_rate,
+    optimizer = build_optimizer(
+        model=model,
+        learning_rate=args.learning_rate,
+        backbone_lr_mult=args.backbone_lr_mult,
         weight_decay=args.weight_decay,
+    )
+    logger.info(
+        "optimizer groups=%s",
+        [
+            {"lr": group["lr"], "weight_decay": group["weight_decay"], "params": len(group["params"])}
+            for group in optimizer.param_groups
+        ],
     )
     scheduler = ReduceLROnPlateau(
         optimizer,
@@ -665,6 +798,7 @@ def train(args: argparse.Namespace) -> None:
         patience=args.scheduler_patience,
         min_lr=args.scheduler_min_lr,
     )
+    scaler = make_grad_scaler(args.amp and device.type == "cuda")
     class_weights = compute_class_weights(
         args.train_csv,
         device,
@@ -698,6 +832,7 @@ def train(args: argparse.Namespace) -> None:
             regression_stats=regression_stats,
             args=args,
             optimizer=optimizer,
+            scaler=scaler,
         )
         val_metrics = run_epoch(
             model=model,
@@ -718,7 +853,7 @@ def train(args: argparse.Namespace) -> None:
             bad_epochs += 1
 
         scheduler.step(score)
-        lr = float(optimizer.param_groups[0]["lr"])
+        lr = float(max(group["lr"] for group in optimizer.param_groups))
         metrics = {**train_metrics, **val_metrics, "lr": lr}
         row = {
             "epoch": epoch + 1,
