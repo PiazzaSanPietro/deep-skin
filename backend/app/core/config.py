@@ -29,8 +29,9 @@ class Settings(BaseSettings):
     MAX_IMAGE_SIZE_MB: int = 10
 
     # ── AI Inference ──────────────────────
-    AI_INFERENCE_MODE: str = "mock"          # "mock" | "remote"
+    AI_INFERENCE_MODE: str = "mock"          # "mock" | "remote" | "multivalue"
     AI_INFERENCE_URL: str = "http://localhost:9000/inference/skin"
+    AI_MULTIVALUE_INFERENCE_URL: str = "http://localhost:9001/inference/skin"
     AI_INFERENCE_TIMEOUT_SECONDS: int = 30
 
     @property

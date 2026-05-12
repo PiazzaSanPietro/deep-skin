@@ -142,16 +142,44 @@
     margin-top: 28px;
 }
 .ds-report-part-card {
-    min-height: 218px;
     background: #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 20px 20px 0 0;  /* bottom corners squared — button acts as footer */
+    box-shadow: none;
+    padding: 20px 20px 14px;
+}
+
+/* card + button wrapper */
+[class*="st-key-ds_pcard_"] {
     border: 1px solid #E1E9F8;
     border-radius: 20px;
     box-shadow: 0 10px 26px rgba(31,54,94,0.06);
-    padding: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.18s ease;
+}
+[class*="st-key-ds_pcard_"]:hover {
+    box-shadow: 0 14px 32px rgba(31,54,94,0.10);
+}
+
+/* sky-blue button inside the card wrapper */
+[class*="st-key-ds_pcard_"] button[kind="secondary"],
+[class*="st-key-ds_pcard_"] .stButton > button {
+    background: #A8D8F0 !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    font-size: 13px;
+    border-radius: 0 0 14px 14px !important;
+    margin-top: -1px;
+    box-shadow: none !important;
+}
+[class*="st-key-ds_pcard_"] .stButton > button:hover {
+    background: #8ECAE6 !important;
+    color: #FFFFFF !important;
+    box-shadow: none !important;
 }
 .ds-part-card-focus {
-    border-color: rgba(75,123,255,0.42);
-    box-shadow: 0 12px 28px rgba(75,123,255,0.12);
+    border-color: rgba(75,123,255,0.3);
 }
 .ds-part-icon {
     width: 62px;
@@ -253,6 +281,173 @@
     font-size: 11px;
     margin-top: 2px;
 }
+/* ── 피부 고민별 성분 추천 ──────────────────────────────────────────── */
+
+/* concern group card */
+.ds-cg-card {
+    background: #FFFFFF;
+    border: 1px solid #E8EDF5;
+    border-radius: 18px;
+    padding: 22px 24px 20px;
+    box-shadow: 0 2px 12px rgba(31,54,94,0.05);
+    margin-bottom: 14px;
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+.ds-cg-card:hover {
+    box-shadow: 0 8px 28px rgba(31,54,94,0.10);
+    transform: translateY(-1px);
+}
+.ds-cg-card-dim {
+    opacity: 0.72;
+    background: #FAFBFF;
+}
+.ds-cg-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+.ds-cg-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+.ds-cg-name {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    flex: 1;
+}
+.ds-cg-sev {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+.ds-cg-section-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #B0BBCC;
+    margin-bottom: 9px;
+}
+.ds-cg-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 4px;
+}
+.ds-cg-metric-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #F4F7FC;
+    border: 1px solid #E8EDF5;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-size: 12px;
+}
+.ds-cg-metric-label { color: #7A89A3; }
+.ds-cg-metric-val {
+    font-weight: 800;
+    color: #1A2C52;
+    font-variant-numeric: tabular-nums;
+}
+.ds-cg-no-metric {
+    font-size: 12px;
+    color: #D1D9E6;
+    font-style: italic;
+    padding: 4px 0;
+}
+.ds-cg-divider {
+    height: 1px;
+    background: #EEF2FA;
+    margin: 14px 0;
+}
+.ds-cg-ings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+.ds-cg-ing-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 13px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+}
+.ds-cg-no-ing {
+    font-size: 12px;
+    color: #D1D9E6;
+    font-style: italic;
+}
+
+/* section headers */
+.ds-rec-concern-header,
+.ds-rec-bottom-header {
+    font-size: 13px;
+    font-weight: 800;
+    color: #94A3B8;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+.ds-rec-bottom-header {
+    margin-top: 32px;
+    padding-top: 28px;
+    border-top: 1px solid #EEF2FA;
+}
+
+/* bottom mini cards */
+.ds-rec-mini-card {
+    background: #FFFFFF;
+    border: 1px solid #E8EDF5;
+    border-radius: 16px;
+    padding: 20px 22px 18px;
+    box-shadow: 0 2px 10px rgba(31,54,94,0.04);
+    height: 100%;
+}
+.ds-rec-mini-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1A2C52;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #EEF2FA;
+}
+.ds-rec-mini-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.ds-rec-tip-item {
+    font-size: 12.5px;
+    color: #45556F;
+    line-height: 1.75;
+    padding-left: 14px;
+    position: relative;
+    width: 100%;
+}
+.ds-rec-tip-item::before {
+    content: "›";
+    position: absolute;
+    left: 0;
+    color: #A8D8F0;
+    font-weight: 700;
+    font-size: 14px;
+    line-height: 1.55;
+}
+
 .ds-report-rec-card {
     min-height: 252px;
     background: #FFFFFF;
@@ -404,4 +599,719 @@
     .ds-report-summary-card {
         grid-template-columns: 1fr;
     }
+}
+
+/* ── 상세 측정값 영역 ──────────────────────────────────────────────────────── */
+.ds-metrics-header {
+    color: #102A5C;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 18px 0 8px;
+    padding-top: 14px;
+    border-top: 1px solid #EEF2FA;
+}
+.ds-metrics-list {
+    display: grid;
+    gap: 5px;
+}
+.ds-metric-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    background: #F8FBFF;
+    border: 1px solid #EEF2FA;
+}
+.ds-metric-name {
+    color: #374151;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+.ds-metric-value {
+    color: #4B7BFF;
+    font-size: 12px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.ds-metric-dummy-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: #FFF7ED;
+    color: #B45309;
+    border: 1px solid #FED7AA;
+    font-size: 10px;
+    font-weight: 700;
+    vertical-align: middle;
+}
+
+/* ── 전문가 모드 추이 선택 영역 ─────────────────────────────────────────────── */
+.ds-trends-expert-header {
+    color: #102A5C;
+    font-size: 12px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 24px 0 12px;
+    padding-top: 18px;
+    border-top: 1px solid #EEF2FA;
+}
+
+/* ── 섹션 서브타이틀 ──────────────────────────────────────────────────────── */
+.ds-report-section-sub {
+    color: #8A96AD;
+    font-size: 12px;
+    margin: -8px 0 16px;
+    line-height: 1.55;
+}
+
+/* ── 추천 성분 출처 안내 노트 ─────────────────────────────────────────────── */
+.ds-rec-source-note {
+    color: #8A96AD;
+    font-size: 11.5px;
+    line-height: 1.6;
+    margin-top: 12px;
+    padding: 9px 16px;
+    background: #F8FBFF;
+    border: 1px solid #EEF2FA;
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* ── 상세 측정값 — 그룹 블록 (전문가 모드) ───────────────────────────────── */
+.ds-metrics-group-block {
+    margin-bottom: 10px;
+}
+.ds-metrics-group-label {
+    display: inline-block;
+    color: #6B7894;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    margin: 8px 0 5px;
+    padding: 3px 10px 3px;
+    background: #F0F4FF;
+    border-radius: 6px;
+}
+
+/* ── 추이 그래프 영역 카드 래퍼 ──────────────────────────────────────────── */
+.ds-trend-charts-container {
+    background: #FAFCFF;
+    border: 1px solid #EEF2FA;
+    border-radius: 18px;
+    padding: 14px 16px;
+    margin-top: 12px;
+}
+.ds-trend-empty-state {
+    text-align: center;
+    padding: 28px 20px;
+    color: #8A96AD;
+}
+.ds-trend-empty-icon { font-size: 32px; margin-bottom: 10px; }
+.ds-trend-empty-text { font-size: 13px; line-height: 1.65; }
+.ds-trend-no-data {
+    color: #8A96AD;
+    font-size: 12px;
+    padding: 8px 0;
+    text-align: center;
+}
+.ds-trend-single-value {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 0 8px;
+    gap: 4px;
+}
+.ds-trend-single-num {
+    font-size: 26px;
+    font-weight: 900;
+    color: #4B7BFF;
+    font-variant-numeric: tabular-nums;
+}
+.ds-trend-single-date {
+    font-size: 12px;
+    color: #8A96AD;
+}
+.ds-trend-single-hint {
+    font-size: 11px;
+    color: #B0BBCC;
+    margin-top: 3px;
+}
+
+/* ── 선택 가능한 파트 카드 ── */
+.ds-part-card-selected {
+    border-color: #4B7BFF;
+}
+/* selected state on wrapper */
+[class*="st-key-ds_pcard_"]:has(.ds-part-card-selected) {
+    border-color: #4B7BFF;
+    box-shadow: 0 0 0 2px rgba(75,123,255,0.22), 0 12px 28px rgba(75,123,255,0.14);
+}
+/* selected button turns solid blue */
+[class*="st-key-ds_pcard_"]:has(.ds-part-card-selected) .stButton > button {
+    background: #4B7BFF !important;
+}
+
+/* ── 선택된 파트 상세 패널 (v2) ── */
+.ds-dpanel {
+    margin: 20px 0 12px;
+    background: #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 20px;
+    padding: 24px 28px 20px;
+    box-shadow: 0 8px 28px rgba(31,54,94,0.07);
+}
+
+/* header */
+.ds-dpanel-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #EEF2FA;
+    margin-bottom: 20px;
+}
+.ds-dpanel-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #EEF4FF 0%, #F3F0FF 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.ds-dpanel-icon img { width: 44px; height: 44px; object-fit: contain; }
+.ds-dpanel-head-text { flex: 1; min-width: 0; }
+.ds-dpanel-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+.ds-dpanel-name {
+    font-size: 20px;
+    font-weight: 900;
+    color: #0F2447;
+}
+.ds-dpanel-sev {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+}
+.ds-dpanel-summary {
+    font-size: 13px;
+    color: #64708A;
+    line-height: 1.6;
+}
+
+/* section label */
+.ds-dpanel-sec-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+
+/* issue cards */
+.ds-dpanel-issue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-bottom: 24px;
+}
+.ds-dpanel-ic {
+    background: #F8FAFF;
+    border-radius: 0 10px 10px 0;
+    padding: 12px 14px;
+}
+.ds-dpanel-ic-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1A2C52;
+    margin-bottom: 8px;
+}
+.ds-dpanel-ic-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.ds-dpanel-ic-grade {
+    font-size: 12px;
+    color: #94A3B8;
+}
+.ds-dpanel-ic-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
+/* metrics */
+.ds-dpanel-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+.ds-dpanel-mrow {
+    display: grid;
+    grid-template-columns: 130px 1fr auto;
+    align-items: center;
+    gap: 14px;
+}
+.ds-dpanel-mrow-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+}
+.ds-dpanel-mrow-track {
+    height: 6px;
+    background: #EEF2FA;
+    border-radius: 10px;
+    overflow: hidden;
+    flex: 1;
+}
+.ds-dpanel-mrow-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #7EC8F0, #4B7BFF);
+    border-radius: 10px;
+    transition: width 0.4s ease;
+}
+.ds-dpanel-mrow-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: #4B7BFF;
+    min-width: 54px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+/* bilateral metrics — override 3-col grid */
+.ds-dpanel-mrow:has(.ds-dpanel-mrow-bi) {
+    grid-template-columns: 130px 1fr;
+}
+.ds-dpanel-mrow-bi {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ds-dpanel-mrow-side {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ds-dpanel-mrow-tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94A3B8;
+    width: 14px;
+    flex-shrink: 0;
+}
+
+/* ── 레이더 차트 섹션 ── */
+.ds-radar-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 0;
+}
+.ds-radar-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 0;
+    justify-content: center;
+}
+.ds-radar-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.ds-radar-bar-label {
+    width: 62px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #334155;
+    flex-shrink: 0;
+}
+.ds-radar-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #E8EDF5;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.ds-radar-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s ease;
+}
+.ds-radar-bar-good   { background: linear-gradient(90deg, #4B7BFF, #3DD9C5); }
+.ds-radar-bar-moderate { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+.ds-radar-bar-poor   { background: linear-gradient(90deg, #EF4444, #F87171); }
+.ds-radar-bar-score {
+    width: 28px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 700;
+    color: #5B7FBF;
+    flex-shrink: 0;
+}
+
+/* ── 전문가 분석 패널 ── */
+.ds-exp-panel-header {
+    font-size: 14px;
+    font-weight: 800;
+    color: #7B8EBF;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 16px 0 12px;
+}
+.ds-exp-card {
+    background: #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 18px;
+    padding: 18px 20px 20px;
+    box-shadow: 0 6px 18px rgba(31,54,94,0.05);
+    margin-bottom: 14px;
+}
+.ds-exp-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+.ds-exp-card-name {
+    font-size: 16px;
+    font-weight: 900;
+    color: #102A5C;
+}
+.ds-exp-sev-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+    flex-shrink: 0;
+}
+.ds-exp-summary {
+    font-size: 12px;
+    color: #64708A;
+    line-height: 1.65;
+    margin-bottom: 10px;
+}
+.ds-exp-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 12px;
+}
+.ds-exp-chip {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 10px;
+    border: 1px solid;
+}
+.ds-exp-metrics {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 1px solid #EEF2FA;
+}
+.ds-exp-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.ds-exp-group-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: #94A3C8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 2px;
+}
+.ds-exp-metric-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.ds-exp-metric-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+}
+.ds-exp-metric-label {
+    font-size: 12px;
+    color: #334155;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.ds-exp-metric-val {
+    font-size: 12px;
+    font-weight: 700;
+    color: #4B6FA8;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.ds-exp-bar-track {
+    height: 5px;
+    background: #EEF2FA;
+    border-radius: 3px;
+    overflow: hidden;
+}
+.ds-exp-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.35s ease;
+}
+.ds-exp-bar-fill {
+    background: linear-gradient(90deg, #4B7BFF 0%, #818CF8 100%);
+}
+.ds-exp-bar-dim {
+    background: #CBD5E1;
+}
+.ds-exp-no-data {
+    font-size: 12px;
+    color: #94A3B8;
+    padding: 6px 0;
+}
+.ds-exp-trend-divider {
+    margin: 24px 0 16px;
+    border-top: 1px solid #EEF2FA;
+}
+
+/* ── 좌우 비교 카드 ── */
+.ds-exp-bilateral-card {
+    margin-bottom: 14px;
+}
+.ds-exp-bilateral-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: #94A3C8;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+}
+.ds-exp-bilateral-cols {
+    display: flex;
+    gap: 0;
+    align-items: flex-start;
+}
+.ds-exp-bilateral-side {
+    flex: 1;
+    min-width: 0;
+}
+.ds-exp-bilateral-side-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #EEF2FA;
+}
+.ds-exp-bilateral-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: #102A5C;
+}
+.ds-exp-bilateral-divider {
+    width: 1px;
+    background: #E8EDF5;
+    margin: 0 18px;
+    flex-shrink: 0;
+    align-self: stretch;
+}
+
+/* ── 전문가 패널 — 커스텀 접기/펼치기 카드 ── */
+.ds-exp-det {
+    background: #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 18px;
+    box-shadow: 0 6px 18px rgba(31,54,94,0.05);
+    overflow: hidden;
+    margin-bottom: 10px;
+    transition: box-shadow 0.2s ease;
+}
+.ds-exp-det:hover {
+    box-shadow: 0 8px 24px rgba(31,54,94,0.09);
+}
+.ds-exp-det-sum {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    background: #FFFFFF;
+}
+.ds-exp-det-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.ds-exp-det-sum::-webkit-details-marker { display: none; }
+.ds-exp-det-sum::after {
+    content: '›';
+    font-size: 20px;
+    font-weight: 300;
+    color: #94A3B8;
+    line-height: 1;
+    flex-shrink: 0;
+    transform: rotate(90deg);
+    transition: transform 0.2s ease;
+}
+.ds-exp-det:not([open]) .ds-exp-det-sum::after {
+    transform: rotate(0deg);
+}
+.ds-exp-det[open] .ds-exp-det-sum {
+    border-bottom: 1px solid #EEF2FA;
+}
+.ds-exp-det-body {
+    padding: 14px 20px 18px;
+}
+
+/* ── 측정 추이 탭 ─────────────────────────────────────────────────────────── */
+.ds-trend-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #94A3B8;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 4px 0 12px;
+}
+
+.ds-tcard {
+    background: #FFFFFF;
+    border: 1px solid #EEF2FA;
+    border-radius: 14px;
+    padding: 18px 18px 0;
+    box-shadow: 0 2px 8px rgba(31,54,94,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 180px;          /* fixed height — all cards identical */
+    overflow: hidden;
+    transition: box-shadow 0.18s ease;
+}
+.ds-tcard:hover {
+    box-shadow: 0 4px 16px rgba(31,54,94,0.10);
+}
+.ds-tcard-empty {
+    background: #F8FAFF;
+    border-color: #E8EDF5;
+    box-shadow: none;
+    opacity: 0.6;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.ds-tcard-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94A3B8;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ds-tcard-val-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+.ds-tcard-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: #0F2447;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+.ds-tcard-delta {
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+}
+.ds-tcard-up   { color: #10B981; }
+.ds-tcard-dn   { color: #EF4444; }
+.ds-tcard-flat { color: #94A3B8; }
+
+.ds-tcard-spark {
+    line-height: 0;
+    margin-top: auto;   /* push sparkline to the bottom of the card */
+    overflow: hidden;
+    border-radius: 0 0 14px 14px;
+    flex-shrink: 0;
+}
+.ds-tcard-spark svg {
+    display: block;
+    width: calc(100% + 36px);  /* bleed past padding on both sides */
+    height: 60px;
+    margin-left: -18px;
+}
+
+.ds-tcard-nodata {
+    font-size: 12px;
+    color: #CBD5E1;
+    font-style: italic;
+    margin-top: auto;
+    padding-top: 8px;
+}
+
+.ds-tcard-single-date {
+    font-size: 11px;
+    color: #94A3B8;
+    margin-top: auto;
+    padding-bottom: 8px;
+}
+.ds-tcard-hint {
+    font-size: 11px;
+    color: #CBD5E1;
+    line-height: 1.5;
+    padding-bottom: 14px;
+}
+
+.ds-trend-empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #94A3B8;
+}
+.ds-trend-empty-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+}
+.ds-trend-empty-text {
+    font-size: 14px;
+    line-height: 1.65;
+}
+
+.ds-exp-trend-divider {
+    height: 1px;
+    background: #EEF2FA;
+    margin: 16px 0;
 }

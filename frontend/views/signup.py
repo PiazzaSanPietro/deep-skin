@@ -4,7 +4,7 @@ import os
 import streamlit as st
 
 from services import auth_api, api_client
-from components.common import show_error, show_success
+from components.common import show_error
 from styles.css_loader import load_css_with_vars
 
 
@@ -198,6 +198,7 @@ def _handle_signup(name: str, email: str, password: str, password_confirm: str):
         show_error(api_client.get_error_message(result))
         return
 
-    show_success("회원가입이 완료되었습니다. 로그인해주세요.")
+    st.session_state["_signup_flash"] = "회원가입이 완료되었습니다. 로그인해주세요."
     st.session_state["current_page"] = "login"
+    st.query_params["page"] = "login"
     st.rerun()

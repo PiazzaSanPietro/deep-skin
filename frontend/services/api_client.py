@@ -32,9 +32,11 @@ def _connection_error(e: Exception) -> dict:
     return {"_status": -1, "_error": str(e)}
 
 
-def get(endpoint: str, token: str | None = None) -> dict:
+def get(endpoint: str, token: str | None = None, params: dict | None = None) -> dict:
     try:
-        r = requests.get(f"{_BASE_URL}{endpoint}", headers=_headers(token), timeout=30)
+        r = requests.get(
+            f"{_BASE_URL}{endpoint}", headers=_headers(token), params=params, timeout=30
+        )
         if not r.ok:
             return _parse_error(r)
         return r.json()

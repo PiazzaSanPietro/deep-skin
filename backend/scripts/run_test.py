@@ -14,7 +14,7 @@ from PIL import Image
 import sqlalchemy as sa
 
 BASE = "http://localhost:8000"
-DB_URL = "mysql+pymysql://root:zxasqw12@localhost:3306/deep_skin?charset=utf8mb4"
+DB_URL = "mysql+pymysql://root:Zxasqw-12@localhost:3306/deep_skin?charset=utf8mb4"
 TEST_EMAIL = f"testrunner_{int(time.time())}@example.com"
 TEST_PW = "test1234"
 

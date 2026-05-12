@@ -1,0 +1,228 @@
+/* Deep Skin — Sidebar (sidebar.css, loaded after theme.py) */
+
+/* ══════════════════════════════════════════
+   펼친 사이드바
+══════════════════════════════════════════ */
+
+/* 1. 비활성 nav 버튼 — 좌정렬 강제 (flex 내부까지) */
+.st-key-ds_sidebar_expanded [data-testid="stButton"] > button {
+    justify-content: flex-start !important;
+}
+.st-key-ds_sidebar_expanded [data-testid="stButton"] > button > div,
+.st-key-ds_sidebar_expanded [data-testid="stButton"] > button p,
+.st-key-ds_sidebar_expanded [data-testid="stButton"] > button span {
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
+/* 2. 활성 아이템도 좌정렬 */
+.ds-nav-active {
+    background: #EEF4FF !important;
+    border: none !important;
+    border-radius: 12px !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    color: #3B5EDB !important;
+    min-height: 48px !important;
+    margin: 2px 0 !important;
+    cursor: default !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 3. 로그아웃 — 위 여백 + 구분선 */
+.st-key-ds_sidebar_logout {
+    margin-top: auto !important;
+    padding-top: 14px !important;
+    border-top: 1px solid #EEF2FA !important;
+    width: 100% !important;
+}
+.st-key-ds_sidebar_logout [data-testid="stButton"] > button {
+    justify-content: flex-start !important;
+    color: #9DAFC4 !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+.st-key-ds_sidebar_logout [data-testid="stButton"] > button:hover {
+    color: #E53E3E !important;
+    background: #FFF5F5 !important;
+}
+.st-key-ds_sidebar_logout [data-testid="stButton"] > button > div,
+.st-key-ds_sidebar_logout [data-testid="stButton"] > button p,
+.st-key-ds_sidebar_logout [data-testid="stButton"] > button span {
+    justify-content: flex-start !important;
+    text-align: left !important;
+}
+
+/* 4. MENU 레이블 */
+.ds-nav-section {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: #C4CDD9 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    padding: 4px 6px 6px !important;
+    margin: 0 !important;
+}
+
+/* 5. 구분선 */
+.ds-sidebar-rule {
+    height: 1px !important;
+    background: #EEF2FA !important;
+    margin: 12px 0 14px !important;
+    border: none !important;
+}
+.ds-sidebar-rule-spaced {
+    margin: 16px 0 14px !important;
+}
+
+/* 6. AI 정보 카드 (quota 없는 간소 버전) */
+.ds-sidebar-info-card {
+    background: linear-gradient(135deg, #EEF4FF 0%, #F0EDFF 100%) !important;
+    border: 1px solid rgba(139,124,246,0.22) !important;
+    border-radius: 14px !important;
+    padding: 14px 16px !important;
+    margin-bottom: 0 !important;
+}
+.ds-sidebar-info-title {
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    color: #5B6EDB !important;
+    letter-spacing: 0.04em !important;
+    margin-bottom: 5px !important;
+}
+.ds-sidebar-info-text {
+    font-size: 11.5px !important;
+    line-height: 1.65 !important;
+    color: #7B87A8 !important;
+}
+
+
+/* ══════════════════════════════════════════
+   접힌 사이드바
+══════════════════════════════════════════ */
+
+/* 컨테이너 — 세로 중앙 정렬 */
+.st-key-ds_sidebar_collapsed {
+    padding: 18px 10px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 20px !important;
+}
+
+/* 햄버거 버튼 (첫 번째 자식) */
+.st-key-ds_sidebar_collapsed > div:first-child [data-testid="stButton"] > button {
+    width: 40px !important;
+    height: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    border-radius: 12px !important;
+    background: #F3F7FF !important;
+    color: #7190FF !important;
+    border: 1px solid #E0E8FF !important;
+    box-shadow: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.st-key-ds_sidebar_collapsed > div:first-child [data-testid="stButton"] > button:hover {
+    background: #EAF1FF !important;
+    color: #3E6BFF !important;
+}
+
+/* 구분선 */
+.ds-collapsed-divider {
+    height: 1px !important;
+    background: #E8EFF9 !important;
+    width: 28px !important;
+    margin: 4px auto !important;
+}
+
+/* 모든 요소 컨테이너 높이 고정 — 활성/비활성 전환 시 레이아웃 시프트 방지 */
+.st-key-ds_sidebar_collapsed [data-testid="stElementContainer"],
+.st-key-ds_sidebar_collapsed [data-testid="stVerticalBlock"] > div {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 비활성 아이콘 버튼 */
+.st-key-ds_sidebar_collapsed [data-testid="stButton"] > button {
+    width: 42px !important;
+    min-width: 42px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+    background: #FFFFFF !important;
+    color: #7A8CAA !important;
+    border: 1px solid #E4EBF5 !important;
+    box-shadow: 0 1px 4px rgba(31,54,94,0.07) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background 0.15s, box-shadow 0.15s !important;
+    transform: none !important;  /* press 애니메이션 제거 */
+}
+.st-key-ds_sidebar_collapsed [data-testid="stButton"] > button:hover {
+    background: #EEF4FF !important;
+    color: #4B7BFF !important;
+    border-color: #C7D7FF !important;
+    box-shadow: 0 3px 10px rgba(75,123,255,0.14) !important;
+    transform: none !important;
+}
+.st-key-ds_sidebar_collapsed [data-testid="stButton"] > button:active {
+    transform: none !important;
+    box-shadow: 0 1px 4px rgba(31,54,94,0.07) !important;
+}
+
+/* 활성 아이콘 */
+.ds-collapsed-nav-active {
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, #5B8CFF 0%, #3DD9C5 100%) !important;
+    box-shadow: 0 4px 16px rgba(75,123,255,0.32) !important;
+    margin: 0 auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: #FFFFFF !important;
+    font-size: 18px !important;
+}
+.ds-collapsed-nav-active img {
+    filter: brightness(0) invert(1) !important;
+    width: 20px !important;
+    height: 20px !important;
+}
+
+/* 로그아웃 (접힌) */
+.st-key-ds_sidebar_collapsed_logout {
+    margin-top: 8px !important;
+}
+.st-key-ds_sidebar_collapsed_logout [data-testid="stButton"] > button {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+    color: #ADBCCC !important;
+}
+.st-key-ds_sidebar_collapsed_logout [data-testid="stButton"] > button:hover {
+    background: #FFF0F0 !important;
+    color: #E53E3E !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}

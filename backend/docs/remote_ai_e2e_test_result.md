@@ -1,39 +1,40 @@
 # Remote AI E2E 테스트 완료 보고
 
-> 작성일: 2026-05-11  
-> 작성자: bellra-jin  
+> 최초 작성: 2026-05-11 (remote 단일값 서버)
+> 업데이트: 2026-05-13 (multivalue 서버 전환 및 전체 필드 검증 완료)
 > 대상 브랜치: exp/jm-prep
 
 ---
 
 ## 개요
 
-DINOv3 기반 실제 AI 서버와 프론트엔드를 연결하는 전체 통신 흐름 테스트를 완료했습니다.
-이번 테스트 목적은 **모델 정확도 검증이 아니라 프론트 → 백엔드 → AI 서버 → DB → 리포트까지의 통신 흐름 검증**입니다.
+DINOv3 + MultiTaskSkinModel 기반 multivalue AI 서버와 프론트엔드를 연결하는
+전체 통신 흐름 및 DB 저장 검증을 완료했습니다.
 
 ---
 
-## 테스트 환경
+## 최종 테스트 환경
 
 | 항목 | 값 |
 |---|---|
-| AI 서버 | `http://localhost:9000` |
+| AI 서버 (multivalue) | `http://localhost:9001` |
 | 백엔드 | `http://localhost:8000` |
 | 프론트 | `http://localhost:8501` |
-| AI 추론 모드 | `remote` (테스트 전 `mock` → `remote` 변경) |
-| GPU | CUDA 사용 확인 |
-| 모델 로드 | `models_loaded: true` |
+| AI 추론 모드 | `multivalue` |
+| 모델 | DINOv3 ViT-S/16 + MultiTaskSkinModel |
+| Device | CPU (CUDA 미지원 환경) |
 
 ---
 
-## 현재 AI 모델 구조
+## 모델 구조
 
-| 부위 | 상태 | 비고 |
-|---|---|---|
-| **눈가 (left_eye)** | ✅ **실제 DINOv3 추론** | `ckpt_kfold_vits_part3` 5-fold 앙상블 |
-| 볼 / 이마 / 미간 / 입술 / 턱 | mock 고정값 | 해당 checkpoint 미준비, 추후 연결 예정 |
+| 파일 | 역할 |
+|---|---|
+| `model/face_multivalue_inf_best_v2.pt` | MultiTaskSkinModel head (13MB) |
+| `model/yolo_facecrop_best.pt` | YOLO 얼굴 부위 검출 (18MB) |
+| `scripts/dinov3_vits16plus_pretrain_lvd1689m-4057cbaa.pth` | DINOv3 ViT-S backbone (110MB) |
 
-현재는 눈가 Part 3(`l_perocular_wrinkle`)만 실제 모델로 추론하며, 나머지 부위는 임시 고정값을 사용합니다.
+모든 facepart(이마/미간/눈가/볼/입술/턱) 에 대해 실제 모델 추론 동작.
 
 ---
 
@@ -42,73 +43,115 @@ DINOv3 기반 실제 AI 서버와 프론트엔드를 연결하는 전체 통신 
 ```
 프론트 이미지 업로드
 → 백엔드 POST /analysis/sessions/{id}/images
-→ inference_service.run_inference() [remote 모드]
-→ AI 서버 POST /inference/skin (bbox 없이 전체 이미지 전달)
-→ DINOv3 실제 추론 (눈가)
-→ 백엔드 skin_part_results DB 저장
-→ GET /analysis/sessions/{id}/report
-→ 프론트 리포트 화면 눈가 결과 표시
+→ image_service._run_multivalue_mode()
+→ inference_service.run_multivalue_inference() [multivalue 모드]
+→ multivalue_ai_server :9001 POST /inference/skin
+    → YOLO 얼굴 부위 검출 (미검출 부위는 full_image_fallback)
+    → DINOv3 feature 추출 → MultiTaskSkinModel 추론
+→ multivalue_parser.parse_multivalue_response()
+    → skin_part_results 저장 (등급값 11개)
+    → skin_metric_values 저장 (연속 측정값 79개, 더미 0개)
+    → skin_part_detections 저장 (YOLO 검출 기록 8개)
+    → ai_raw_responses 저장 (원본 JSON)
+→ recommendation_service.generate_and_save()
+→ GET /analysis/sessions/{id}/report → 프론트 리포트 표시
 ```
 
 **전 구간 정상 동작 확인** ✅
 
 ---
 
-## 눈가 실제 추론 결과 (session_id=47)
+## DB 저장 검증 (session_id=161 기준)
 
-| 항목 | mock 고정값 | 실제 AI 추론값 |
+### skin_part_results — 등급/이슈값 (11개)
+
+| 부위 | 이슈 | 등급 | severity |
+|---|---|---|---|
+| chin | sagging | 3 | moderate |
+| forehead | pigmentation | 3 | severe |
+| forehead | wrinkle | 2 | mild |
+| glabella | wrinkle | 2 | severe |
+| left_cheek | pore | 1 | mild |
+| left_cheek | pigmentation | 1 | mild |
+| left_eye | wrinkle | 1 | mild |
+| lips | dryness | 2 | mild |
+| right_cheek | pore | 1 | mild |
+| right_cheek | pigmentation | 1 | mild |
+| right_eye | wrinkle | 1 | mild |
+
+### skin_metric_values — 연속 측정값 (79개, 더미 0개)
+
+| 부위 | metric_group | 개수 |
 |---|---|---|
-| `model_name` | `mock_skin_model` | **`skin_dinov3_ensemble_model`** |
-| `grade_value` | 3 | **0** |
-| `severity` | `severe` | **`normal`** |
-| `confidence_score` | 0.88 | **0.8224** |
-| `predicted_value` | 0.87 | 0.87 (※ 현재 고정값, 하단 참고) |
-| `measured_value` | — | **NULL** (이미지 업로드 경로 정상) |
+| chin | elasticity | 14 |
+| forehead | elasticity | 14 |
+| forehead | moisture | 1 |
+| full_face | pigmentation | 1 (pigmentation_count=165) |
+| full_face | acne | 1 (acne_count=0, 실제 모델 예측) |
+| left_cheek | elasticity | 14 |
+| left_cheek | moisture | 1 |
+| left_cheek | pore | 1 (pore_count=551) |
+| left_eye | wrinkle | 8 (Ra/Rmax/Rt 등) |
+| right_cheek | elasticity | 14 |
+| right_cheek | moisture | 1 |
+| right_cheek | pore | 1 (pore_count=650) |
+| right_eye | wrinkle | 8 |
 
-`grade_value`, `severity`, `confidence_score` 세 값이 모두 mock과 달라 **실제 모델 추론이 동작하고 있음을 확인**했습니다.
+### skin_part_detections — YOLO 검출 기록 (8개)
+
+| 부위 | bbox_source | 비고 |
+|---|---|---|
+| chin | yolo | conf=0.930 |
+| forehead | yolo | conf=0.778 |
+| glabella | yolo | conf=0.815 |
+| left_cheek | yolo | conf=0.871 |
+| lips | yolo | conf=0.860 |
+| right_cheek | yolo | conf=0.829 |
+| left_eye | full_image_fallback | YOLO 미검출, 전체 이미지 사용 |
+| right_eye | full_image_fallback | YOLO 미검출, 전체 이미지 사용 |
 
 ---
 
-## bbox 처리 방향
+## YOLO 검출률 특성
 
-| 레이어 | 역할 |
-|---|---|
-| 프론트 | 전체 얼굴 이미지만 전달. bbox 생성 없음 |
-| 백엔드 | 이미지를 AI 서버로 그대로 전달. bbox 생성 없음 |
-| AI 서버 | bbox 처리 담당. 현재 자동 추출 준비 중 → bbox 없으면 전체 이미지 기준 추론 |
+테스트 이미지들에서 확인된 YOLO 검출 패턴:
 
-이번 테스트는 bbox 없이 진행했으며 통신 흐름은 정상입니다.
-bbox 자동 추출 모델 연결 후 눈가 crop 정확도를 별도로 검증할 예정입니다.
+- **안정적 검출**: chin, lips (대부분 이미지에서 검출)
+- **조건부 검출**: forehead, glabella, left_cheek, right_cheek (이미지 품질에 따라)
+- **거의 미검출**: left_eye, right_eye (현재 테스트 이미지에서 신뢰도 0)
+
+미검출 부위는 `full_image_fallback` 처리되어 전체 이미지 crop으로 추론을 수행합니다.
+등급값 0(예: wrinkle=0)은 더미가 아닌 **실제 "이상 없음" 모델 예측값**입니다.
 
 ---
 
-## `predicted_value` 현재 상태
+## chin_moisture 제거
 
-현재 `inference_engine.py`의 `predict()`는 `grade_value`, `severity`, `confidence_score`만 반환하고 `predicted_value`는 반환하지 않습니다.
-때문에 눈가의 `predicted_value`는 AI 서버 응답 템플릿의 고정값(`0.87`)이 그대로 유지됩니다.
-이 부분은 이후 `predict()`에서 확률 기반 회귀값을 `predicted_value`로 추가하는 작업이 필요합니다.
+`chin_moisture`는 LABEL_REGISTRY에 학습 라벨이 없어 항상 0이었습니다.
+2026-05-13에 AI 서버 응답 및 DB 저장 대상에서 완전히 제거했습니다.
+(`scripts/multivalue_ai_server.py` `_build_part8()` 함수에서 제거)
 
 ---
 
 ## 성공 기준 체크리스트
 
-- [x] AI 서버 health 정상 (`status: ok`, `models_loaded: true`, `device: cuda`)
-- [x] 백엔드 `AI_INFERENCE_MODE=remote` 적용
+- [x] AI 서버 health 정상 (`models_loaded: true`, `face_detector_loaded: true`)
+- [x] `AI_INFERENCE_MODE=multivalue` 적용
 - [x] 프론트 이미지 업로드 성공
-- [x] 백엔드가 AI 서버 `/inference/skin` 호출
-- [x] DB `skin_part_results`에 `left_eye` 저장, `model_name=skin_dinov3_ensemble_model`
-- [x] report API에 눈가 결과 포함
-- [x] 프론트 리포트 화면에 눈가 카드 및 예측값 표시
-- [x] `measured_value = NULL` (이미지 업로드 경로 정상)
+- [x] 백엔드가 AI 서버 `:9001/inference/skin` 호출
+- [x] 9개 facepart 모두 추론 (미검출 부위는 fallback)
+- [x] skin_part_results 11개 정상 저장 (더미 없음)
+- [x] skin_metric_values 79개 정상 저장 (더미 없음)
+- [x] skin_part_detections 8개 정상 저장
+- [x] 리포트 API에서 전 부위 결과 포함
+- [x] 프론트 리포트 화면 정상 표시
 
-**결론: 통신 흐름 E2E 테스트 성공**
+**결론: MultiValue AI E2E 테스트 성공**
 
 ---
 
 ## 다음 단계 TODO
 
-1. **`predicted_value` 실제화** — `inference_engine.predict()`에서 확률 기반 회귀값 반환 추가
-2. **bbox 자동 추출 연결** — AI 서버 내부에서 눈가 bbox 자동 추출 모델/로직 구현
-3. **bbox 정확도 재검증** — 자동 추출 완료 후 눈가 crop 기반 추론 정확도 별도 테스트
-4. **다부위 확장** — 볼/이마/미간/입술/턱 checkpoint 및 bbox 준비 후 순차 연결
-5. **`.env` 확인** — 개발 중 mock/remote 모드 전환 시 백엔드 재시작 필수 (`lru_cache` 적용됨)
+1. **YOLO 검출률 개선** — 눈가(left_eye/right_eye) 검출이 안 되는 원인 분석 및 모델 개선
+2. **chin_moisture 모델 학습** — 필요 시 LABEL_REGISTRY에 추가 후 재학습
+3. **이미지 품질 가이드** — 정면 얼굴, 밝은 조명 조건에서의 검출률 최적화 가이드 작성
