@@ -25,3 +25,26 @@ def get_report(token: str, session_id: int) -> dict:
 
 def get_latest_report(token: str) -> dict:
     return api_client.get("/analysis/reports/latest", token=token)
+
+
+def get_session_metrics(token: str, session_id: int) -> dict:
+    return api_client.get(f"/analysis/sessions/{session_id}/metrics", token=token)
+
+
+def get_metric_trends(
+    token: str,
+    raw_part_name: str,
+    metric_group: str,
+    metric_name: str,
+    limit: int = 10,
+) -> dict:
+    return api_client.get(
+        "/analysis/metrics/trends",
+        token=token,
+        params={
+            "raw_part_name": raw_part_name,
+            "metric_group": metric_group,
+            "metric_name": metric_name,
+            "limit": limit,
+        },
+    )

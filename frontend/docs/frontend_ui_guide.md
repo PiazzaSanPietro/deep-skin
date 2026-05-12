@@ -152,6 +152,8 @@ st.file_uploader("이미지 업로드", type=["jpg", "jpeg", "png"])
 #### 구성
 - 전체 분석 결과 카드
 - 부위별 분석 결과 카드
+- 상세 분석 (expander) — 부위별 issues + 상세 측정값 (Phase 2-2 추가)
+- 피부 측정 추이 (Phase 2-4 추가) — "추이 그래프 보기" 토글로 on-demand 로드
 - 추천 카테고리
 - 추천 성분
 - 제외 성분
@@ -160,6 +162,44 @@ st.file_uploader("이미지 업로드", type=["jpg", "jpeg", "png"])
 - 양호
 - 주의
 - 집중 관리 필요
+
+#### 상세 측정값 영역 (Phase 2-2 추가)
+
+부위별 상세 expander 내부에 "상세 측정값" 섹션을 추가한다.
+
+기본 모드: 수분, 모공 개수, 탄력 R2/R7, 주름 Ra/Rmax 등 주요 항목만 표시.
+
+전문가 모드: `st.toggle("전문가 모드로 상세 지표 보기")` 토글로 전환.
+- 전체 측정값 표시 (R0~R9, Q0~Q3, Ra/Rmax/Rt 등)
+- `is_dummy=true` 항목은 `[모델 미학습]` 배지 표시
+
+```
+▼ 이마 상세 보기
+  ─ 상세 측정값 ─────────────────
+  수분            59.97
+  탄력 R2         0.553
+  탄력 R7         0.302
+  (전문가 모드 시 더 많은 항목 표시)
+```
+
+mock/remote 기존 세션: `parts=[]` 응답 → 측정값 섹션 숨김, 기존 리포트 정상 표시.
+
+#### 추이 지표 직접 선택 영역 (Phase 3-B 추가, Phase 3-F에서 3-column 배치로 변경)
+
+전문가 모드 + "추이 그래프 보기" 토글이 모두 켜진 경우에만 기본 8개 차트 아래에 **지표 직접 선택** 섹션이 표시된다.
+
+```
+─ 지표 직접 선택 ──────────────────────────────────────────────
+부위           지표 그룹       세부 지표
+[이마  ▼]      [수분  ▼]      [moisture  ▼]
+[ 추이 조회 ]
+```
+
+Phase 3-F에서 `st.columns(3, gap="small")` 한 줄로 변경됨 (기존: 3개 selectbox 세로 나열)
+
+- 부위 변경 시 하위 selectbox 자동 초기화 (index 0)
+- "추이 조회" 버튼 클릭 시 API 호출 → 기존 `_render_trend_chart()` 형식으로 결과 표시
+- 결과는 session_state에 캐시 (버튼 재클릭 전까지 유지)
 
 ### 부위별 카드
 
@@ -207,6 +247,28 @@ severe   → 집중 관리 필요
 Streamlit 네이티브 `st.sidebar` 접힘 상태에 의존하지 않고, 앱 본문을 좌측 내비게이션 컬럼과 우측 콘텐츠 컬럼으로 나누어 구성한다.
 상단 메뉴 아이콘으로 좌측 메뉴를 접고, 접힌 상태의 아이콘 레일에서 다시 펼칠 수 있어야 한다.
 사이드바는 expanded / collapsed 전용 컨테이너와 CSS를 분리해 새로고침 직후에도 동일한 스타일로 렌더링한다.
+
+사이드바 CSS 구조 (2026-05-13 재설계):
+- `styles/theme.py` `inject_css()` — 전역 사이드바 기반 스타일
+- `styles/sidebar.css` — `render_sidebar()` 호출 시 추가 적용되는 polish 레이어
+
+#### 펼친 상태 (expanded)
+
+- 모든 nav 버튼: `justify-content: flex-start` — 비활성 상태도 항상 좌측 정렬
+- 활성 메뉴: `background: #EEF4FF`, 텍스트 `#3B5EDB`, 굵은 글씨, 보더/그림자 없음
+- MENU 섹션 라벨: 10px uppercase, `#C4CDD9`
+- 구분선: 1px `#EEF2FA`
+- Deep Skin AI 정보 카드: `linear-gradient(#EEF4FF → #F0EDFF)` 배경
+- 로그아웃: `border-top: 1px solid #EEF2FA`, hover 시 빨간색
+- 분석 가능 횟수 카운터 **제거됨** (실제 카운팅 기능 없음)
+
+#### 접힌 상태 (collapsed)
+
+- 아이콘 버튼: 42×42px, `border-radius: 14px`, white bg + `#E4EBF5` border
+- 아이콘 간격: `gap: 20px`
+- 활성 아이콘: `linear-gradient(135deg, #5B8CFF → #3DD9C5)` 배경, 흰색 아이콘
+- `:active` 애니메이션 제거 (`transform: none !important`) — 클릭 시 레이아웃 시프트 방지
+- `stElementContainer` min-height 42px 고정 — 활성/비활성 전환 시 높이 변동 없음
 
 메뉴:
 ```

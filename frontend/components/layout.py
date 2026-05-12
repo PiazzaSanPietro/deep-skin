@@ -5,6 +5,7 @@ import streamlit as st
 
 from services import auth_api
 from components.common import _reset_session
+from styles.css_loader import load_css
 
 # ── 아이콘 로드 헬퍼 ─────────────────────────────────────────────────────────
 
@@ -48,6 +49,7 @@ _NAV_ITEMS = [
 # ── 사이드바 렌더링 ──────────────────────────────────────────────────────────
 
 def render_sidebar():
+    load_css("sidebar.css")
     if st.session_state.get("sidebar_collapsed"):
         _render_sidebar_collapsed()
         return
@@ -77,27 +79,13 @@ def render_sidebar():
 
         st.markdown('<div class="ds-sidebar-rule ds-sidebar-rule-spaced"></div>', unsafe_allow_html=True)
 
-        with st.container(key="ds_sidebar_info"):
-            st.markdown(
-                """
-                <div class="ds-sidebar-info-card">
-                    <div class="ds-sidebar-info-title">✦ Deep Skin AI</div>
-                    <div class="ds-sidebar-info-text">
-                        AI로 당신의 피부를<br>더 깊이 이해하세요.
-                    </div>
-                    <div class="ds-sidebar-quota">
-                        <div class="ds-sidebar-quota-row">
-                            <span>오늘의 분석 가능 횟수</span>
-                            <strong>3/5</strong>
-                        </div>
-                        <div class="ds-sidebar-quota-track">
-                            <div class="ds-sidebar-quota-fill"></div>
-                        </div>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+        st.markdown(
+            '<div class="ds-sidebar-info-card">'
+            '<div class="ds-sidebar-info-title">✦ Deep Skin AI</div>'
+            '<div class="ds-sidebar-info-text">AI로 당신의 피부를<br>더 깊이 이해하세요.</div>'
+            '</div>',
+            unsafe_allow_html=True,
+        )
 
         with st.container(key="ds_sidebar_logout"):
             if st.button("로그아웃", key="nav_logout", icon=":material/logout:", width="stretch"):

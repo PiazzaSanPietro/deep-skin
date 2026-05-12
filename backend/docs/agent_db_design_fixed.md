@@ -23,6 +23,8 @@ mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}?charset=ut
 0004_create_recommendation_tables.py
 0005_seed_rules.py
 0006_seed_rules_extended.py
+0007_create_multivalue_ai_tables.py   ← Phase 1-1 추가 (2026-05-12)
+0008_create_metric_boost_tables.py    ← Phase 2-3B 추가 (2026-05-13)
 ```
 
 실행:
@@ -47,6 +49,11 @@ alembic upgrade head
 | `recommendation_rules` | `RecommendationRule` | 부위/이슈/severity별 추천 규칙 |
 | `part_recommendations` | `PartRecommendation` | 세션별 최종 추천 결과 저장 |
 | `products` | `Product` | 제품 후보 테이블. 현재 추천 API에서 직접 사용하지 않음 |
+| `ai_raw_responses` | `AiRawResponse` | multivalue AI 응답 원본 JSON 보존 (Phase 1-1 추가) |
+| `skin_part_detections` | `SkinPartDetection` | YOLO bbox 검출 결과 및 crop bbox (Phase 1-1 추가) |
+| `skin_metric_values` | `SkinMetricValue` | equipment.* 상세 측정값 row 단위 (Phase 1-1 추가) |
+| `metric_threshold_rules` | `MetricThresholdRule` | metric별 위험 기준/임계값 관리 (Phase 2-3A 추가) |
+| `metric_recommendation_boost_rules` | `MetricRecommendationBoostRule` | 임계값 기반 추천 보정 rule (Phase 2-3B 연결, seed 미삽입) |
 
 ## 주요 관계
 
@@ -123,4 +130,5 @@ recommendation_rules
 ## 현재 미사용/확인 필요
 
 - `products` 테이블은 현재 서비스/API 흐름에서 직접 조회하지 않습니다.
-- `analysis_sessions.analyzed_at`, `overall_status`, `summary_message`는 모델에 있지만 현재 완료 처리에서 명확히 갱신하지 않습니다. TODO: 리포트 UI에서 분석 일시가 필요하면 서비스에서 갱신하도록 코드 수정 검토.
+- `analysis_sessions.analyzed_at` — Phase 3-C QA에서 버그 발견 및 수정 완료 (2026-05-12). `image_service._run_flat_mode()`, `_run_multivalue_mode()`, `dev_json_service.upload_dev_json()` 각 완료 처리에서 `session.analyzed_at = datetime.utcnow()`를 설정하도록 수정. 이로써 trends 차트 X축 날짜가 실제 분석 완료 시각을 반영한다.
+- `analysis_sessions.overall_status`, `summary_message`는 모델에 있지만 현재 서비스 흐름에서 갱신하지 않음 (report_service에서 동적 생성).

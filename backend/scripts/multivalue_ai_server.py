@@ -32,6 +32,11 @@ _MV_DIR = os.path.join(SCRIPT_DIR, "face_multivalue_inf")
 if _MV_DIR not in sys.path:
     sys.path.insert(0, _MV_DIR)
 
+# infer_image.py가 `from dinov3.models...`로 임포트하므로 dinov3 패키지 루트를 추가한다.
+_DINOV3_DIR = os.path.join(SCRIPT_DIR, "dinov3")
+if _DINOV3_DIR not in sys.path:
+    sys.path.insert(0, _DINOV3_DIR)
+
 try:
     from scripts.face_detector import PART_NAME_MAP, FaceDetector
 except ImportError:
@@ -250,9 +255,7 @@ def _build_part7(filename, W, H, bbox, results) -> Dict[str, Any]:
 
 
 def _build_part8(filename, W, H, bbox, results) -> Dict[str, Any]:
-    equipment = {"chin_moisture": _as_float(results, "moisture_l_cheek")}  # chin moisture 라벨 부재 시 fallback
-    # 실제 라벨이 LABEL_REGISTRY에 없으므로 chin_moisture는 더미
-    equipment["chin_moisture"] = _DUMMY_FLOAT
+    equipment: Dict[str, Any] = {}
     for i in range(10):
         equipment[f"chin_elasticity_R{i}"] = _as_float(results, f"R{i}_chin")
     for i in range(4):
@@ -323,12 +326,20 @@ async def inference_skin(
             print(f"[multivalue] face detection failed: {e}")
 
     # 2) bbox 딕셔너리 (facepart id → (x, y, w, h))
+    # 검출된 부위는 해당 bbox 사용, 미검출 부위는 전체 이미지를 fallback으로 사용
+    # → 모든 facepart가 추론되어 더미 0 값이 남지 않도록 보장
     bboxes_xywh: Dict[int, Tuple[int, int, int, int]] = {}
     for raw_name, det in part_bboxes.items():
         fp = PART_NAME_TO_FACEPART.get(raw_name)
         if fp is None:
             continue
         bboxes_xywh[fp] = _xyxy_to_xywh(det["bbox_xyxy"])
+
+    # 미검출 facepart에 전체 이미지 bbox 할당 (fallback)
+    full_bbox = (0, 0, W, H)
+    for fp in PART_NAME_TO_FACEPART.values():
+        if fp not in bboxes_xywh:
+            bboxes_xywh[fp] = full_bbox
 
     # 3) MultiTask 추론 (모든 facepart 한 번에)
     results: Dict[str, float] = {}

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import session_access_denied, session_not_found
@@ -75,6 +77,7 @@ def upload_dev_json(
             created_result_count += 1
 
     session.status = "completed"
+    session.analyzed_at = datetime.utcnow()
     db.commit()
 
     # 추천 생성

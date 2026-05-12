@@ -6,7 +6,10 @@ import streamlit as st
 from services import user_api, api_client
 from components.common import show_error, show_success, handle_401
 from components.layout import render_page_header
-from styles.theme import SKIN_TYPE_OPTIONS, MAIN_CONCERN_OPTIONS, PREFERRED_PRODUCT_OPTIONS
+from styles.theme import (
+    SKIN_TYPE_OPTIONS, MAIN_CONCERN_OPTIONS,
+    PREFERRED_PRODUCT_OPTIONS, ALLERGY_INGREDIENT_OPTIONS,
+)
 
 
 # ── 진입점 ───────────────────────────────────────────────────────────────────
@@ -47,124 +50,111 @@ def _render_form():
     if from_login:
         st.info("피부 분석 추천을 위해 프로필을 먼저 입력해주세요.", icon="💡")
 
-    # 2열: 폼(좌 3) + 안내 카드(우 1)
-    col_form, col_guide = st.columns([3, 1], gap="large")
-
-    with col_guide:
+    with st.expander("✨ 맞춤 추천 반영 항목 보기"):
         _render_guide_card()
 
-    with col_form:
-        with st.form("profile_edit_form"):
+    with st.form("profile_edit_form"):
 
-            # ── 기본 정보 ─────────────────────────────
-            st.markdown("#### 기본 정보")
-            c1, c2, c3 = st.columns([2, 2, 2])
+        # ── 기본 정보 ─────────────────────────────
+        st.markdown("#### 기본 정보")
 
-            with c1:
-                age = st.number_input(
-                    "나이 *",
-                    min_value=1, max_value=149,
-                    value=existing.get("age") or 25,
-                    step=1,
-                )
-            with c2:
-                birth_year = st.number_input(
-                    "출생연도",
-                    min_value=1900, max_value=2025,
-                    value=existing.get("birth_year") or 1999,
-                    step=1,
-                )
-            with c3:
-                gender_map     = {"M": "남성", "F": "여성"}
-                gender_options = list(gender_map.values())
-                existing_gender_label = gender_map.get(existing.get("gender", ""), "남성")
-                gender_label = st.selectbox(
-                    "성별 *",
-                    options=gender_options,
-                    index=gender_options.index(existing_gender_label),
-                )
-                gender = "M" if gender_label == "남성" else "F"
+        age = st.number_input(
+            "나이 *",
+            min_value=1, max_value=149,
+            value=existing.get("age") or 25,
+            step=1,
+        )
+        birth_year = st.number_input(
+            "출생연도",
+            min_value=1900, max_value=2025,
+            value=existing.get("birth_year") or 1999,
+            step=1,
+        )
+        gender_map     = {"M": "남성", "F": "여성"}
+        gender_options = list(gender_map.values())
+        existing_gender_label = gender_map.get(existing.get("gender", ""), "남성")
+        gender_label = st.selectbox(
+            "성별 *",
+            options=gender_options,
+            index=gender_options.index(existing_gender_label),
+        )
+        gender = "M" if gender_label == "남성" else "F"
 
-            # ── 피부 정보 ─────────────────────────────
-            st.markdown("#### 피부 정보")
-            c4, c5 = st.columns([2, 2])
+        # ── 피부 정보 ─────────────────────────────
+        st.markdown("#### 피부 정보")
 
-            with c4:
-                skin_type_labels = list(SKIN_TYPE_OPTIONS.values())
-                skin_type_codes  = list(SKIN_TYPE_OPTIONS.keys())
-                existing_skin    = existing.get("skin_type") or 1
-                skin_idx = skin_type_codes.index(existing_skin) if existing_skin in skin_type_codes else 0
-                skin_type_label = st.selectbox(
-                    "피부 타입 *",
-                    options=skin_type_labels,
-                    index=skin_idx,
-                )
-                skin_type = skin_type_codes[skin_type_labels.index(skin_type_label)]
+        skin_type_labels = list(SKIN_TYPE_OPTIONS.values())
+        skin_type_codes  = list(SKIN_TYPE_OPTIONS.keys())
+        existing_skin    = existing.get("skin_type") or 1
+        skin_idx = skin_type_codes.index(existing_skin) if existing_skin in skin_type_codes else 0
+        skin_type_label = st.selectbox(
+            "피부 타입 *",
+            options=skin_type_labels,
+            index=skin_idx,
+        )
+        skin_type = skin_type_codes[skin_type_labels.index(skin_type_label)]
 
-            with c5:
-                sensitive_options = ["아니요", "예"]
-                existing_sensitive = existing.get("sensitive")
-                sensitive_idx = 1 if existing_sensitive == 1 else 0
-                sensitive_label = st.selectbox(
-                    "민감성 피부 *",
-                    options=sensitive_options,
-                    index=sensitive_idx,
-                )
-                sensitive = 1 if sensitive_label == "예" else 0
+        sensitive_options = ["아니요", "예"]
+        existing_sensitive = existing.get("sensitive")
+        sensitive_idx = 1 if existing_sensitive == 1 else 0
+        sensitive_label = st.selectbox(
+            "민감성 피부 *",
+            options=sensitive_options,
+            index=sensitive_idx,
+        )
+        sensitive = 1 if sensitive_label == "예" else 0
 
-            # ── 주요 고민 ─────────────────────────────
-            st.markdown("#### 주요 피부 고민 *")
-            concern_labels = list(MAIN_CONCERN_OPTIONS.values())
-            concern_keys   = list(MAIN_CONCERN_OPTIONS.keys())
-            existing_concerns = existing.get("main_concerns") or []
-            existing_concern_labels = [
-                MAIN_CONCERN_OPTIONS[k] for k in existing_concerns
-                if k in MAIN_CONCERN_OPTIONS
-            ]
-            selected_concern_labels = st.multiselect(
-                "주요 피부 고민을 선택하세요 (최소 1개)",
-                options=concern_labels,
-                default=existing_concern_labels,
+        # ── 주요 고민 ─────────────────────────────
+        st.markdown("#### 주요 피부 고민 *")
+        concern_labels = list(MAIN_CONCERN_OPTIONS.values())
+        concern_keys   = list(MAIN_CONCERN_OPTIONS.keys())
+        existing_concerns = existing.get("main_concerns") or []
+        existing_concern_labels = [
+            MAIN_CONCERN_OPTIONS[k] for k in existing_concerns
+            if k in MAIN_CONCERN_OPTIONS
+        ]
+        selected_concern_labels = st.multiselect(
+            "주요 피부 고민을 선택하세요 (최소 1개)",
+            options=concern_labels,
+            default=existing_concern_labels,
+        )
+        main_concerns = [
+            concern_keys[concern_labels.index(lbl)]
+            for lbl in selected_concern_labels
+        ]
+
+        # ── 알러지 성분 ───────────────────────────
+        st.markdown("#### 알러지 성분")
+        _known_keys = set(ALLERGY_INGREDIENT_OPTIONS.keys())
+        existing_allergy = existing.get("allergy_ingredients") or []
+        default_allergy = [k for k in existing_allergy if k in _known_keys]
+        selected_allergy = st.multiselect(
+            "알러지가 있는 성분을 선택하세요 (없으면 선택하지 않아도 됩니다)",
+            options=list(ALLERGY_INGREDIENT_OPTIONS.keys()),
+            default=default_allergy,
+            format_func=lambda k: ALLERGY_INGREDIENT_OPTIONS[k],
+        )
+
+        # ── 선호 제품 타입 ────────────────────────
+        st.markdown("#### 선호 제품 타입 *")
+        existing_products = existing.get("preferred_product_types") or []
+        selected_products = st.multiselect(
+            "선호하는 제품 타입을 선택하세요 (최소 1개)",
+            options=PREFERRED_PRODUCT_OPTIONS,
+            default=[p for p in existing_products if p in PREFERRED_PRODUCT_OPTIONS],
+        )
+
+        st.markdown("---")
+
+        # ── 버튼 ──────────────────────────────────
+        if from_login:
+            submitted = st.form_submit_button(
+                "저장하고 분석 시작 →", use_container_width=True
             )
-            main_concerns = [
-                concern_keys[concern_labels.index(lbl)]
-                for lbl in selected_concern_labels
-            ]
-
-            # ── 알러지 성분 ───────────────────────────
-            st.markdown("#### 알러지 성분 *")
-            existing_allergy = existing.get("allergy_ingredients") or []
-            allergy_input = st.text_area(
-                "알러지가 있는 성분을 쉼표로 구분하여 입력하세요",
-                value=", ".join(existing_allergy),
-                placeholder="예: retinol, BHA, 알코올",
-                height=80,
-            )
-            st.caption("알러지 성분이 없으면 '없음' 또는 '해당없음'을 입력하세요.")
-
-            # ── 선호 제품 타입 ────────────────────────
-            st.markdown("#### 선호 제품 타입 *")
-            existing_products = existing.get("preferred_product_types") or []
-            selected_products = st.multiselect(
-                "선호하는 제품 타입을 선택하세요 (최소 1개)",
-                options=PREFERRED_PRODUCT_OPTIONS,
-                default=[p for p in existing_products if p in PREFERRED_PRODUCT_OPTIONS],
-            )
-
-            st.markdown("---")
-
-            # ── 버튼 ──────────────────────────────────
-            if from_login:
-                submitted = st.form_submit_button(
-                    "저장하고 분석 시작 →", use_container_width=True
-                )
-                cancelled = False
-            else:
-                col_save, col_cancel = st.columns([3, 1])
-                with col_save:
-                    submitted = st.form_submit_button("저장하기", use_container_width=True)
-                with col_cancel:
-                    cancelled = st.form_submit_button("취소", use_container_width=True)
+            cancelled = False
+        else:
+            submitted = st.form_submit_button("저장하기", use_container_width=True)
+            cancelled = st.form_submit_button("취소", use_container_width=True)
 
     # form 밖에서 취소 처리
     if cancelled:
@@ -181,7 +171,7 @@ def _render_form():
             skin_type=skin_type,
             sensitive=sensitive,
             main_concerns=main_concerns,
-            allergy_input=allergy_input,
+            allergy_ingredients=selected_allergy,
             selected_products=selected_products,
         )
 
@@ -237,23 +227,12 @@ def _handle_save(
     skin_type: int,
     sensitive: int,
     main_concerns: list[str],
-    allergy_input: str,
+    allergy_ingredients: list[str],
     selected_products: list[str],
 ):
-    allergy_raw = allergy_input.strip()
-    if allergy_raw.lower() in ("없음", "해당없음", "none", "-", ""):
-        allergy_ingredients = ["없음"]
-    else:
-        allergy_ingredients = [
-            item.strip() for item in allergy_raw.replace(",", ",").split(",")
-            if item.strip()
-        ]
-
     errors = []
     if not main_concerns:
         errors.append("주요 피부 고민을 1개 이상 선택해주세요.")
-    if not allergy_ingredients:
-        errors.append("알러지 성분을 입력하거나 '없음'으로 입력해주세요.")
     if not selected_products:
         errors.append("선호 제품 타입을 1개 이상 선택해주세요.")
 

@@ -23,6 +23,11 @@ from app.models.ingredient_rule import IngredientRule  # noqa: F401
 from app.models.recommendation_rule import RecommendationRule  # noqa: F401
 from app.models.part_recommendation import PartRecommendation  # noqa: F401
 from app.models.product import Product  # noqa: F401
+from app.models.ai_raw_response import AiRawResponse  # noqa: F401
+from app.models.skin_part_detection import SkinPartDetection  # noqa: F401
+from app.models.skin_metric_value import SkinMetricValue  # noqa: F401
+from app.models.metric_threshold_rule import MetricThresholdRule  # noqa: F401
+from app.models.metric_recommendation_boost_rule import MetricRecommendationBoostRule  # noqa: F401
 # ─────────────────────────────────────────────────────────
 
 config = context.config
