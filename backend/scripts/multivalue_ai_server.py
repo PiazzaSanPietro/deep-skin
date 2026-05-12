@@ -43,7 +43,7 @@ from infer_image import EndToEndInferencer  # noqa: E402
 # Paths
 # ===================================================================
 DINOV3_CKPT = os.path.join(SCRIPT_DIR, "dinov3_vits16plus_pretrain_lvd1689m-4057cbaa.pth")
-HEAD_CKPT = os.path.join(BASE_DIR, "model", "face_multivalue_inf_best.pt")
+HEAD_CKPT = os.path.join(BASE_DIR, "model", "face_multivalue_inf_best_v2.pt")
 YOLO_CKPT = os.path.join(BASE_DIR, "model", "yolo_facecrop_best.pt")
 
 # raw_part_name(서버측) → facepart id
