@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -F \"file=@C:/Users/Admin/Desktop/Project/deep-skin/backend/scripts/facepart_03_test/0001_01_F.jpg\" http://127.0.0.1:9011/inference/skin -o /tmp/resp.json -w \"HTTP %{http_code} | %{size_download}B | %{time_total}s\\\\n\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('/tmp/resp.json',encoding='utf-8'\\)\\); print\\('model:', d.get\\('model_name'\\), d.get\\('model_version'\\)\\); print\\('detected:', [\\(p['raw_part_name'], round\\(p['confidence'],3\\)\\) for p in d['detected_parts']]\\); [print\\('--- part', p['images']['facepart'], '---\\\\n', json.dumps\\(p, ensure_ascii=False, indent=2\\)\\) for p in d['parts']]\")"
+    ]
+  }
+}
