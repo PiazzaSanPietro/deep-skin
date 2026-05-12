@@ -469,7 +469,7 @@ python notebooks/jh/test/test_cheek_pipeline.py --target pigmentation
 
 최신 운영 요약은 다음을 참조하십시오:
 
-- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+- [cheek_current_training_setup.md](cheek_current_training_setup.md)
 
 # 부록: 현재 코드 우선 적용 사항
 
@@ -509,4 +509,4 @@ results/test/crop_error_log.csv
 
 For the latest consolidated summary, see:
 
-- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+- [cheek_current_training_setup.md](cheek_current_training_setup.md)

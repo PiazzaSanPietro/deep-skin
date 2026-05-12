@@ -103,12 +103,15 @@ AI로 더 깊이,
 - 왼쪽: 서비스 가치 설명
 - 중앙: 로그인 카드
 - 오른쪽: 브랜드 일러스트 또는 여백
+- 하단: 약관/개인정보/문의 푸터
 
 #### 표시 요소
 - 이메일 입력
 - 비밀번호 입력
 - 로그인 버튼
 - 회원가입 이동 링크
+
+로그인 화면은 스크롤 없이 첫 화면 안에 3열 콘텐츠와 하단 푸터가 함께 보여야 한다.
 
 #### 참고 이미지
 `frontend/assets/ui_references/login_reference.png`
@@ -177,12 +180,33 @@ mild     → 약한 관리 필요
 moderate → 관리 필요
 severe   → 집중 관리 필요
 ```
+
+#### 상세 수치 표시
+
+부위별 카드에서 `predicted_value` 또는 `measured_value`가 있을 경우 상세 수치를 표시한다.
+
+표시 예시:
+```
+측정값: 2.73
+예측값: 0.62
+```
+
+디자인 기준:
+- `severity` 배지보다 작고 차분한 텍스트 크기로 표시 (Text Sub 컬러: `#6B7280`)
+- 카드 하단 또는 issue 항목 내 보조 정보 영역에 배치
+- "측정값" / "예측값" 라벨 사용 — `predicted_value` / `measured_value` 필드명을 그대로 노출하지 않는다
+- 두 값이 모두 null이면 이 영역을 표시하지 않는다 (기존 화면과 동일)
+- `measured_value` 우선, 없으면 `predicted_value` 표시 (동시에 표시하지 않음)
+
 #### 참고 이미지
 `frontend/assets/ui_references/report_reference.png`
 
 ### 사이드바
 
 로그인 후 화면에서 표시한다.
+Streamlit 네이티브 `st.sidebar` 접힘 상태에 의존하지 않고, 앱 본문을 좌측 내비게이션 컬럼과 우측 콘텐츠 컬럼으로 나누어 구성한다.
+상단 메뉴 아이콘으로 좌측 메뉴를 접고, 접힌 상태의 아이콘 레일에서 다시 펼칠 수 있어야 한다.
+사이드바는 expanded / collapsed 전용 컨테이너와 CSS를 분리해 새로고침 직후에도 동일한 스타일로 렌더링한다.
 
 메뉴:
 ```
@@ -255,8 +279,16 @@ raw_part_name
 model_name
 model_version
 json_record_id
+confidence_score
 ```
 필요하면 개발용 expander 안에만 표시한다.
+
+아래 값은 **표시 가능** 값이지만 사용자 친화적 라벨로 변환하여 표시한다.
+```
+predicted_value  →  "예측값"으로 표시
+measured_value   →  "측정값"으로 표시
+```
+두 값이 모두 null이면 표시하지 않는다.
 
 ## 문서 갱신 규칙
 

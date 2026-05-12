@@ -26,6 +26,7 @@ BACKEND_API_URL=http://localhost:8000
 ```
 
 기본 리포트 화면은 `GET /analysis/sessions/{session_id}/report` 응답을 기준으로 구성한다.
+단, 로그아웃/재로그인 후처럼 `current_session_id`가 비어 있으면 먼저 `GET /analysis/reports/latest`를 호출해 현재 로그인 사용자의 최신 완료 리포트를 복구한다.
 
 추천 결과 API(`GET /recommendations/sessions/{session_id}`)는 리포트 화면에서 별도 조회가 필요할 때만 사용하는 보조 API다.
 
@@ -221,6 +222,26 @@ session_id를 유지한다.
 GET /analysis/sessions/{session_id}/report
 ```
 
+#### 재로그인 후 최신 리포트 복구 API
+
+```http
+GET /analysis/reports/latest
+```
+
+#### 호출 기준
+
+```text
+current_session_id 있음
+  -> GET /analysis/sessions/{session_id}/report
+
+current_session_id 없음
+  -> GET /analysis/reports/latest
+     성공: response.session_id를 current_session_id로 복구하고 last_report 저장
+     404: 분석 결과 없음 상태 표시
+```
+
+`session_id`는 분석마다 새로 생성되므로 localStorage에 저장해서 복구하지 않는다. 로그아웃 후 다른 계정으로 로그인할 수 있기 때문에, 현재 로그인 사용자 기준으로 백엔드가 최신 `completed` 세션을 찾는 방식이 기준이다.
+
 #### 응답 주요 구조
 ```json
 {
@@ -229,11 +250,45 @@ GET /analysis/sessions/{session_id}/report
   "overall_summary": {
     "status": "집중 관리 필요",
     "main_message": "눈가 부위의 주름, 볼 부위의 모공 관리가 필요합니다.",
-    "main_issues": []
+    "main_issues": [
+      {"issue_type": "wrinkle", "severity": "severe"},
+      {"issue_type": "pore", "severity": "moderate"}
+    ]
   },
-  "part_reports": []
+  "part_reports": [
+    {
+      "display_part_name": "볼",
+      "summary": "모공 관리가 필요합니다.",
+      "issues": [
+        {
+          "metric_name": "pore",
+          "metric_display_name": "모공",
+          "issue_type": "pore",
+          "severity": "moderate",
+          "grade_value": 2,
+          "predicted_value": 0.62,
+          "measured_value": null,
+          "reason": null
+        }
+      ],
+      "recommendation": null
+    }
+  ]
 }
 ```
+
+#### issues[] 주요 필드 설명
+
+| Field | 설명 |
+|---|---|
+| `grade_value` | 기존 서비스 호환용 등급값 (0~3) |
+| `severity` | UI 표시 및 추천 로직 기준 상태값. `normal` / `mild` / `moderate` / `severe` |
+| `predicted_value` | 이미지 기반 AI 모델 예측 회귀값. 이미지 업로드 경로에서 사용. 없으면 `null` |
+| `measured_value` | AI-Hub JSON 또는 피부 측정 장비 기반 원본 수치. dev JSON 경로에서 사용. 없으면 `null` |
+
+- 이미지 업로드 분석 경로: `predicted_value`가 채워지고 `measured_value`는 `null`
+- dev JSON / AI-Hub JSON 경로: `measured_value`가 채워지고 `predicted_value`는 `null`
+- 두 값이 모두 `null`이어도 `grade_value` / `severity` 기반 기존 화면은 정상 동작
 
 #### 인증 실패 처리
 

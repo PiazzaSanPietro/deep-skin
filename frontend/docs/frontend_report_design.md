@@ -13,6 +13,14 @@
 GET /analysis/sessions/{session_id}/report
 ```
 
+재로그인 후처럼 프론트의 `current_session_id`가 없는 경우에는 아래 API로 최신 완료 리포트를 먼저 복구한다.
+
+```http
+GET /analysis/reports/latest
+```
+
+복구 성공 시 응답의 `session_id`를 `st.session_state["current_session_id"]`에 저장하고, 전체 응답을 `st.session_state["last_report"]`에 저장한 뒤 동일한 리포트 UI로 렌더링한다. 404가 반환될 때만 "분석 결과 없음" 상태를 표시한다.
+
 ## 리포트 응답 구조
 
 주요 응답 구조는 다음과 같다.
@@ -25,7 +33,25 @@ GET /analysis/sessions/{session_id}/report
     "main_message": "눈가 부위의 주름, 볼 부위의 모공 관리가 필요합니다.",
     "main_issues": []
   },
-  "part_reports": []
+  "part_reports": [
+    {
+      "display_part_name": "볼",
+      "summary": "모공 관리가 필요합니다.",
+      "issues": [
+        {
+          "metric_name": "pore",
+          "metric_display_name": "모공",
+          "issue_type": "pore",
+          "severity": "moderate",
+          "grade_value": 2,
+          "predicted_value": 0.62,
+          "measured_value": null,
+          "reason": null
+        }
+      ],
+      "recommendation": null
+    }
+  ]
 }
 ```
 
@@ -63,9 +89,11 @@ recommendation
 
 issue에는 다음 값을 표시한다.
 ```
-metric_display_name
-severity
-grade_value
+metric_display_name   ← 사용자에게 표시할 지표명
+severity              ← 상태 배지
+grade_value           ← 등급 숫자 (보조 표시)
+predicted_value       ← 예측 수치 (있으면 표시)
+measured_value        ← 측정 수치 (있으면 표시)
 ```
 
 사용자에게는 issue_type보다 metric_display_name을 우선 표시한다.
@@ -78,6 +106,41 @@ grade_value
 처짐
 색소침착
 ```
+
+### 3-1. 상세 수치 표시 정책
+
+`predicted_value`와 `measured_value`는 사용자 친화적 라벨로 표시한다.
+
+**표시 우선순위:**
+
+1. `measured_value`가 null이 아니면 → "측정값" 라벨로 표시
+2. `measured_value`가 null이고 `predicted_value`가 null이 아니면 → "예측값" 라벨로 표시
+3. 둘 다 null이면 → `grade_value` / `severity`만 표시 (기존과 동일)
+
+**표시 예시 — 이미지 업로드 경로 (predicted_value 있음):**
+```
+모공
+상태: 관리 필요
+등급: 2단계
+예측값: 0.62
+```
+
+**표시 예시 — dev JSON / AI-Hub 원본 측정값 경로 (measured_value 있음):**
+```
+모공
+상태: 관리 필요
+등급: 2단계
+측정값: 2.73
+```
+
+**표시 예시 — 수치 없음 (기존 동작):**
+```
+모공
+상태: 관리 필요
+등급: 2단계
+```
+
+> 사용자 화면에서 `predicted_value` / `measured_value` 필드명을 그대로 노출하지 않는다. 반드시 "예측값" / "측정값" 라벨로 변환하여 표시한다.
 
 ### 4. severity 표시 기준
 ```
@@ -157,6 +220,14 @@ confidence_score
 ```
 
 confidence_score는 추후 “분석 신뢰도” 영역이 필요할 때만 표시한다.
+
+아래 값은 **표시 가능** 값으로 분류하되, 사용자 친화적 라벨로 변환하여 표시한다.
+```
+predicted_value  →  “예측값”으로 표시
+measured_value   →  “측정값”으로 표시
+```
+
+표시 여부는 3-1절 우선순위 기준을 따른다. 두 값이 모두 null이면 표시하지 않는다.
 
 ### 8. 리포트 없음 처리
 

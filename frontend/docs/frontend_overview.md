@@ -30,6 +30,8 @@ Deep Skin 프론트엔드는 사용자가 얼굴 이미지를 업로드하거나
 - 이미지 파일 업로드
 - 분석 결과 시각화
 - 추천 성분/제외 성분/관리 팁 표시
+- 백엔드에서 내려주는 `predicted_value` / `measured_value`를 활용해 더 세밀한 피부 분석 수치 표시 가능
+- 단, 현재 추천 로직과 상태 표시는 `severity` 기준을 유지한다
 
 ## 백엔드와의 관계
 
@@ -74,6 +76,8 @@ Streamlit Frontend
 - 전체 분석 상태
 - 주요 관리 필요 지표
 - 부위별 분석 결과
+- 예측 수치 (`predicted_value` 기반 — 이미지 업로드 경로)
+- 측정 수치 (`measured_value` 기반 — dev JSON / AI-Hub JSON 경로)
 - 추천 카테고리
 - 추천 성분
 - 제외 성분

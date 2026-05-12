@@ -11,6 +11,8 @@ class IssueItem(BaseModel):
     issue_type: str
     severity: str
     grade_value: Optional[int]
+    predicted_value: Optional[float] = None
+    measured_value: Optional[float] = None
     reason: Optional[str]
 
 

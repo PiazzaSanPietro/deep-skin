@@ -1,0 +1,180 @@
+/* ── 페이지 ── */
+.stApp {
+    background-color: #EEF3FF !important;
+    background-image: var(--ds-signup-bg) !important;
+    background-repeat: no-repeat !important;
+    background-position: bottom center !important;
+    background-size: 100% auto !important;
+}
+.block-container { padding: 0 !important; max-width: 100% !important; }
+
+/* ── 최상위 2-열 레이아웃 (이 페이지에 stHorizontalBlock 은 이것 하나뿐) ── */
+[data-testid="stHorizontalBlock"] {
+    gap: 0 !important;
+    align-items: stretch;
+}
+/* 왼쪽 열 */
+[data-testid="stHorizontalBlock"] > div:first-child {
+    background: transparent;
+    padding: 40px 48px !important;
+    min-height: 100vh;
+}
+/* 오른쪽 열 — 흰색 카드 */
+[data-testid="stHorizontalBlock"] > div:last-child {
+    background: #FFFFFF !important;
+    min-height: 100vh;
+    padding: 140px 44px 64px !important;
+    box-shadow: -3px 0 28px rgba(75, 123, 255, 0.10);
+    overflow: visible !important;
+}
+
+/* ── 입력 아이콘 ── */
+input[placeholder="홍길동"] {
+    background-image: var(--ds-signup-profile-icon);
+    background-repeat: no-repeat;
+    background-size: 18px 18px;
+    background-position: 14px center;
+    padding-left: 42px !important;
+}
+input[placeholder="이메일을 입력해주세요"] {
+    background-image: var(--ds-signup-email-icon);
+    background-repeat: no-repeat;
+    background-size: 18px 18px;
+    background-position: 14px center;
+    padding-left: 42px !important;
+}
+input[placeholder="4자 이상 입력"],
+input[placeholder="비밀번호를 다시 입력하세요"] {
+    background-image: var(--ds-signup-password-icon);
+    background-repeat: no-repeat;
+    background-size: 18px 18px;
+    background-position: 14px center;
+    padding-left: 42px !important;
+}
+
+/* ── 입력 필드: border는 컨테이너(div>div)에만, input·래퍼는 투명 ── */
+
+/* 1) 외곽 컨테이너 — border·배경 적용 */
+.stTextInput > div > div {
+    border: 1.5px solid #E4EAF5 !important;
+    border-radius: 10px !important;
+    background-color: #FAFBFF !important;
+    box-shadow: none !important;
+}
+.stTextInput > div > div:focus-within {
+    box-shadow: 0 0 0 3px rgba(75, 123, 255, 0.12) !important;
+}
+/* 2) 실제 input — border 없음, 배경 투명 */
+.stTextInput > div > div > input {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+    font-size: 14px !important;
+    color: #0F2447 !important;
+}
+.stTextInput > div > div > input:focus,
+.stTextInput > div > div > input:active {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* 3) 눈 아이콘 래퍼 div — 배경·border 제거, 내부 패딩 제거 */
+.st-bz {
+    padding-right: 0 !important;
+}
+.st-cj {
+    padding-right: 0 !important;
+}
+.st-emotion-cache-tn0cau {
+    gap: 0 !important;
+}
+.stTextInput > div > div > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+/* 4) 눈 아이콘 버튼 자체 */
+[data-testid="passwordInputVisibilityToggle"] {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none !important;
+    padding: 0 8px !important;
+}
+[data-testid="passwordInputVisibilityToggle"]:hover,
+[data-testid="passwordInputVisibilityToggle"]:focus {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+/* "Press Enter to submit form" 힌트 숨김 */
+[data-testid="InputInstructions"] {
+    display: none !important;
+}
+.stTextInput > label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #3A4A6B !important;
+}
+
+/* ── 회원가입 카드 ── */
+.st-key-signup_panel {
+    border: 1.5px solid #E8EDF8 !important;
+    border-radius: 16px !important;
+    padding: 24px 24px 24px !important;
+    background: #FFFFFF !important;
+    overflow: visible !important;
+    box-shadow: 0 8px 36px rgba(15, 36, 71, 0.08) !important;
+}
+.st-key-signup_panel [data-testid="stForm"] {
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+/* ── 회원가입 버튼 ── */
+.stForm [data-testid="stFormSubmitButton"] > button {
+    background: linear-gradient(135deg, #4B7BFF 0%, #3DD9C5 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    padding: 13px !important;
+    width: 100%;
+    margin-top: 6px;
+    box-shadow: 0 4px 18px rgba(75, 123, 255, 0.30) !important;
+    transition: box-shadow 0.2s, transform 0.15s;
+}
+.stForm [data-testid="stFormSubmitButton"] > button:hover {
+    box-shadow: 0 6px 26px rgba(75, 123, 255, 0.45) !important;
+    transform: translateY(-1px);
+}
+
+.ds-signin-inline {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 18px;
+    font-size: 13px;
+    color: #6B7894;
+}
+.ds-signin-inline a {
+    color: #8E76E5 !important;
+    font-weight: 800 !important;
+    text-decoration: none !important;
+    cursor: pointer !important;
+}
+.ds-signin-inline a:hover {
+    color: #6D5DD2 !important;
+    text-decoration: underline !important;
+}
+

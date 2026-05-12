@@ -1,0 +1,523 @@
+.block-container {
+    padding-top: 1.75rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+.st-key-ds_analysis_page {
+    max-width: 1440px;
+    margin: 0 auto;
+}
+.ds-analysis-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin: 0 0 18px;
+}
+.ds-analysis-title {
+    color: #102A5C;
+    font-size: 29px;
+    font-weight: 900;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+.ds-analysis-subtitle {
+    color: #66728A;
+    font-size: 13px;
+    line-height: 1.45;
+}
+.ds-security-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #EEFDF8;
+    border: 1px solid #A7F3D0;
+    border-radius: 14px;
+    color: #057A68;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 7px 13px;
+    white-space: nowrap;
+}
+.ds-analysis-steps {
+    display: flex;
+    align-items: center;
+    max-width: 820px;
+    margin: 0 auto 18px;
+}
+.ds-step-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 130px;
+}
+.ds-step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    border: 1.5px solid #CFD8EC;
+    color: #9AA6BC;
+    background: #F7FAFF;
+}
+.ds-step-text {
+    color: #7B879C;
+    font-weight: 800;
+    font-size: 13px;
+}
+.ds-step-active .ds-step-dot,
+.ds-step-done .ds-step-dot {
+    background: linear-gradient(135deg, #4B7BFF 0%, #3DD9C5 100%);
+    border-color: transparent;
+    color: #FFFFFF;
+    box-shadow: 0 10px 22px rgba(75,123,255,0.22);
+}
+.ds-step-active .ds-step-text,
+.ds-step-done .ds-step-text {
+    color: #2446A8;
+}
+.ds-step-connector {
+    flex: 1;
+    min-width: 80px;
+    height: 1.5px;
+    border-top: 2px dashed #CFD8EC;
+    margin: 0 14px;
+}
+.ds-step-connector-done {
+    border-color: #8AB6FF;
+}
+.st-key-ds_camera_card,
+.st-key-ds_upload_card,
+.ds-analysis-card {
+    background: #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 20px;
+    box-shadow: 0 12px 28px rgba(31,54,94,0.07);
+    padding: 26px;
+    min-height: 420px;
+}
+.ds-analysis-card-title {
+    font-size: 15px;
+    font-weight: 900;
+    color: #102A5C;
+    margin-bottom: 0;
+}
+.st-key-ds_upload_card .ds-analysis-card-title {
+    margin-bottom: 18px;
+}
+.ds-camera-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.ds-camera-card-hint {
+    color: #7B879C;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+.ds-analysis-card-help {
+    text-align: center;
+    color: #6B7894;
+    font-size: 13px;
+    margin-top: 12px;
+}
+.ds-upload-dropzone {
+    min-height: 282px;
+    border: 2px dashed #BFD0F9;
+    border-radius: 20px;
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 26px;
+}
+.ds-upload-cloud {
+    font-size: 42px;
+    color: #7ACFE2;
+    margin-bottom: 14px;
+}
+.ds-upload-title {
+    color: #102A5C;
+    font-size: 16px;
+    font-weight: 900;
+    margin-bottom: 9px;
+}
+.ds-upload-desc {
+    color: #7B879C;
+    font-size: 13px;
+    margin-bottom: 0;
+}
+.st-key-ds_camera_card [data-testid="stCameraInput"] {
+    margin-top: 2px;
+    border: 1px solid #E1E9F8;
+    border-radius: 16px;
+    background: #F8FBFF;
+    padding: 10px 10px 22px;
+    overflow: hidden;
+    position: relative;
+}
+.st-key-ds_camera_card [data-testid="stCameraInput"] img,
+.st-key-ds_camera_card [data-testid="stCameraInput"] video {
+    width: 100% !important;
+    max-height: 365px !important;
+    aspect-ratio: 16 / 9;
+    object-fit: cover !important;
+    border-radius: 12px !important;
+}
+.st-key-ds_camera_card [data-testid="stCameraInputButton"] {
+    position: absolute !important;
+    left: 50% !important;
+    bottom: 10px !important;
+    transform: translateX(-50%) !important;
+    z-index: 5 !important;
+    width: 50px !important;
+    min-width: 50px !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    background: linear-gradient(100deg, #3DD9C5 0%, #4B7BFF 58%, #8B7CF6 100%) !important;
+    border: 3px solid #FFFFFF !important;
+    box-shadow: 0 10px 24px rgba(75,123,255,0.28) !important;
+    font-size: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+.st-key-ds_camera_card [data-testid="stCameraInputButton"] > * {
+    display: none !important;
+}
+.st-key-ds_camera_card [data-testid="stCameraInputButton"]::after {
+    content: "📷";
+    font-size: 22px;
+    line-height: 1;
+}
+.st-key-ds_upload_card [data-testid="stFileUploader"] {
+    margin-top: 12px;
+    padding: 0;
+}
+.st-key-ds_upload_card [data-testid="stFileUploader"] > div {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+}
+.st-key-ds_upload_card [data-testid="stFileUploaderDropzone"] {
+    border: none !important;
+    background: transparent !important;
+    justify-content: center !important;
+    padding: 0 !important;
+}
+.st-key-ds_upload_card [data-testid="stFileUploaderDropzone"] button {
+    margin: 0 auto !important;
+}
+.st-key-ds_upload_card [data-testid="stFileUploaderDropzoneInstructions"],
+.st-key-ds_upload_card [data-testid="stFileUploader"] small {
+    display: none !important;
+}
+.ds-preview-frame img {
+    max-height: 320px !important;
+    object-fit: contain !important;
+    border-radius: 16px !important;
+}
+.ds-analysis-guide-wrap {
+    margin-top: 22px;
+}
+.ds-analysis-guide-card {
+    min-height: 98px;
+    background: #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 18px;
+    box-shadow: 0 10px 26px rgba(31,54,94,0.07);
+    padding: 18px 20px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+}
+.ds-analysis-guide-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #EEF4FF 0%, #F3F0FF 100%);
+    font-size: 22px;
+    flex-shrink: 0;
+}
+.ds-analysis-guide-title {
+    color: #102A5C;
+    font-size: 13px;
+    font-weight: 900;
+    margin-bottom: 5px;
+}
+.ds-analysis-guide-desc {
+    color: #6B7894;
+    font-size: 11px;
+    line-height: 1.45;
+}
+.st-key-ds_analysis_action {
+    width: min(390px, 100%);
+    margin: 22px auto 0;
+}
+.st-key-ds_analysis_action button {
+    border-radius: 14px !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    min-height: 50px !important;
+    background: linear-gradient(100deg, #3DD9C5 0%, #4B7BFF 52%, #8B7CF6 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    box-shadow: 0 14px 26px rgba(75,123,255,0.24) !important;
+}
+.ds-analysis-privacy {
+    text-align: center;
+    color: #8A96AD;
+    font-size: 11px;
+    margin-top: 12px;
+}
+.ds-analysis-state-card {
+    max-width: 720px;
+    margin: 24px auto 0;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(61,217,197,0.10) 0%, rgba(255,255,255,0) 42%),
+        #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 24px;
+    box-shadow: 0 18px 48px rgba(31,54,94,0.12);
+    padding: 42px 46px;
+    text-align: center;
+}
+.st-key-ds_complete_card {
+    max-width: 720px;
+    margin: 54px auto 0;
+    background:
+        radial-gradient(circle at 50% 0%, rgba(61,217,197,0.12) 0%, rgba(255,255,255,0) 42%),
+        #FFFFFF;
+    border: 1px solid #E1E9F8;
+    border-radius: 24px;
+    box-shadow: 0 18px 48px rgba(31,54,94,0.12);
+    padding: 44px 46px 38px;
+    text-align: center;
+}
+.st-key-ds_complete_card [data-testid="stMarkdownContainer"],
+.st-key-ds_complete_card .ds-state-title,
+.st-key-ds_complete_card .ds-state-desc {
+    text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.st-key-ds_complete_card .ds-state-badge,
+.st-key-ds_complete_card .ds-complete-orb {
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.st-key-ds_complete_card .stButton {
+    width: min(390px, 100%) !important;
+    margin: 28px auto 0 !important;
+}
+.st-key-ds_complete_card .stButton > button {
+    border-radius: 14px !important;
+    font-size: 16px !important;
+    font-weight: 900 !important;
+    min-height: 50px !important;
+    background: linear-gradient(100deg, #4B7BFF 0%, #3DD9C5 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    box-shadow: 0 14px 26px rgba(75,123,255,0.24) !important;
+}
+.ds-state-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 8px 16px;
+    background: #EEF4FF;
+    color: #315BDF;
+    font-weight: 900;
+    font-size: 13px;
+    margin-bottom: 24px;
+    border: 1px solid #D9E4FF;
+}
+.ds-state-badge-running {
+    background: linear-gradient(100deg, rgba(61,217,197,0.14) 0%, rgba(75,123,255,0.14) 52%, rgba(139,124,246,0.14) 100%);
+    color: #2446A8;
+    border-color: rgba(123,156,255,0.28);
+}
+.ds-state-badge-complete { background: #ECFDF5; color: #047857; }
+.ds-state-badge-error { background: #FEF2F2; color: #B91C1C; }
+.ds-ai-orb {
+    position: relative;
+    width: 92px;
+    height: 92px;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.ds-ai-orb-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: conic-gradient(from 120deg, #3DD9C5, #4B7BFF, #8B7CF6, #3DD9C5);
+    animation: dsSpin 1.15s linear infinite;
+    box-shadow: 0 0 0 10px rgba(75,123,255,0.08), 0 18px 36px rgba(75,123,255,0.22);
+}
+.ds-ai-orb-ring::after {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    border-radius: 50%;
+    background: #FFFFFF;
+}
+.ds-ai-orb::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: rgba(75,123,255,0.13);
+    animation: dsPulse 1.8s ease-in-out infinite;
+}
+.ds-ai-orb-core {
+    position: relative;
+    z-index: 1;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3DD9C5 0%, #4B7BFF 55%, #8B7CF6 100%);
+    color: #FFFFFF;
+    font-size: 25px;
+    font-weight: 900;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
+}
+.ds-complete-orb {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    margin: 0 auto 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3DD9C5 0%, #10B981 100%);
+    color: #FFFFFF;
+    font-size: 42px;
+    font-weight: 900;
+    border: 8px solid #ECFDF5;
+    box-shadow: 0 18px 34px rgba(16,185,129,0.22);
+}
+.ds-state-spinner {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 5px solid #E6EDFF;
+    border-top-color: #4B7BFF;
+    margin: 0 auto 22px;
+    animation: dsSpin 0.9s linear infinite;
+}
+@keyframes dsSpin { to { transform: rotate(360deg); } }
+@keyframes dsPulse {
+    0%, 100% { transform: scale(0.92); opacity: 0.55; }
+    50% { transform: scale(1.08); opacity: 0.18; }
+}
+.ds-state-title {
+    color: #102A5C;
+    font-size: 25px;
+    font-weight: 900;
+    margin-bottom: 12px;
+}
+.ds-state-desc {
+    color: #64708A;
+    font-size: 14px;
+    line-height: 1.75;
+    max-width: 520px;
+    margin: 0 auto;
+}
+.ds-state-subdesc {
+    color: #9AA6BC;
+    font-size: 12px;
+    margin-top: 16px;
+}
+.ds-ai-current-box {
+    max-width: 520px;
+    margin: 24px auto 0;
+    background: linear-gradient(180deg, #F8FBFF 0%, #FFFFFF 100%);
+    border: 1px solid #E1E9F8;
+    border-radius: 18px;
+    padding: 20px 22px;
+    color: #102A5C;
+    text-align: left;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.ds-progress-now {
+    font-weight: 900;
+    color: #2446A8;
+    margin-bottom: 14px;
+    text-align: center;
+}
+.ds-progress-list {
+    display: grid;
+    gap: 8px;
+    color: #65718A;
+    font-size: 13px;
+    line-height: 1.45;
+    max-width: 420px;
+    margin: 0 auto;
+}
+.ds-ai-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px;
+    border-radius: 12px;
+}
+.ds-ai-progress-mark {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 900;
+    background: #EEF4FF;
+    color: #8A96AD;
+}
+.ds-ai-progress-done {
+    color: #35506E;
+}
+.ds-ai-progress-done .ds-ai-progress-mark {
+    background: #D1FAE5;
+    color: #047857;
+}
+.ds-ai-progress-active {
+    color: #2446A8;
+    font-weight: 800;
+    background: linear-gradient(90deg, rgba(75,123,255,0.10), rgba(61,217,197,0.10));
+}
+.ds-ai-progress-active .ds-ai-progress-mark {
+    background: linear-gradient(135deg, #4B7BFF 0%, #3DD9C5 100%);
+    color: #FFFFFF;
+    box-shadow: 0 6px 14px rgba(75,123,255,0.22);
+}
+.ds-ai-progress-pending {
+    color: #A0AABB;
+}
+.ds-disabled-analysis-button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    background: #DCE6FF;
+    color: #5870A8;
+    font-weight: 800;
+}

@@ -1,0 +1,30 @@
+{
+  "info": {
+    "filename": "0001_01_F.jpg",
+    "id": "0001",
+    "gender": "F",
+    "age": 55,
+    "date": "2023-07-27",
+    "skin_type": 3,
+    "sensitive": 0
+  },
+  "images": {
+    "device": 0,
+    "width": 2136,
+    "height": 3216,
+    "angle": 0,
+    "facepart": 3,
+    "bbox": [191, 1432, 411, 1817]
+  },
+  "annotations": { "l_perocular_wrinkle": 3 },
+  "equipment": {
+    "l_perocular_wrinkle_Ra": 14.581,
+    "l_perocular_wrinkle_Rmax": 121.23,
+    "l_perocular_wrinkle_Rt": 127.28,
+    "l_perocular_wrinkle_Rz=Rtm": 86.372,
+    "l_perocular_wrinkle_Rp": 58.52,
+    "l_perocular_wrinkle_Rv": 68.764,
+    "l_perocular_wrinkle_Rq": 18.517,
+    "l_perocular_wrinkle_R3z": 48.491
+  }
+}

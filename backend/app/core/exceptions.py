@@ -40,6 +40,9 @@ def refresh_token_revoked() -> HTTPException:
 def session_not_found() -> HTTPException:
     return _exc(404, "SESSION_NOT_FOUND", "분석 세션을 찾을 수 없습니다.")
 
+def completed_report_not_found() -> HTTPException:
+    return _exc(404, "COMPLETED_REPORT_NOT_FOUND", "완료된 분석 리포트가 없습니다.")
+
 def session_access_denied() -> HTTPException:
     return _exc(403, "SESSION_ACCESS_DENIED", "본인의 분석 세션만 접근할 수 있습니다.")
 

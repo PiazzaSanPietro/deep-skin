@@ -463,7 +463,7 @@ notebooks/jh/test/test_cheek_crop.py
 
 함께 참고:
 
-- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+- [cheek_current_training_setup.md](cheek_current_training_setup.md)
 
 부록: 현재 코드 Override
 
@@ -495,4 +495,4 @@ results/test/crop_error_log.csv
 
 최신 통합 요약은 다음을 참고한다.:
 
-- [cheek_current_training_setup.md](C:/PROJECT/Deep_skin/docs/cheek/cheek_current_training_setup.md)
+- [cheek_current_training_setup.md](cheek_current_training_setup.md)
