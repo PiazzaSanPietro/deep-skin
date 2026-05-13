@@ -28,7 +28,7 @@ class PartResult(BaseModel):
     predicted_value: Optional[float] = None
     measured_value: Optional[float] = None
     severity: str
-    confidence_score: float
+    confidence_score: Optional[float] = None
 
 
 class InferenceResult(BaseModel):

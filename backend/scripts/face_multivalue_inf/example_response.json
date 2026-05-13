@@ -1,0 +1,438 @@
+{
+  "model_name": "skin_dinov3_multivalue",
+  "model_version": "0.1.0",
+  "parts": [
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 0,
+        "bbox": [
+          0,
+          0,
+          2136,
+          3216
+        ]
+      },
+      "annotations": {
+        "acne": null
+      },
+      "equipment": {
+        "pigmentation_count": 146,
+        "acne_count": 0
+      }
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 1,
+        "bbox": [
+          434,
+          677,
+          1685,
+          1209
+        ]
+      },
+      "annotations": {
+        "forehead_pigmentation": 2,
+        "forehead_wrinkle": 3
+      },
+      "equipment": {
+        "forehead_moisture": 59.97346496582031,
+        "forehead_elasticity_R0": 0.26368165016174316,
+        "forehead_elasticity_R1": 0.11382421106100082,
+        "forehead_elasticity_R2": 0.5535097718238831,
+        "forehead_elasticity_R3": 0.28489890694618225,
+        "forehead_elasticity_R4": 0.1640549600124359,
+        "forehead_elasticity_R5": 0.524465024471283,
+        "forehead_elasticity_R6": 0.6568000316619873,
+        "forehead_elasticity_R7": 0.30221137404441833,
+        "forehead_elasticity_R8": 0.14801959693431854,
+        "forehead_elasticity_R9": 0.03095150738954544,
+        "forehead_elasticity_Q0": 52.0998649597168,
+        "forehead_elasticity_Q1": 0.49139297008514404,
+        "forehead_elasticity_Q2": 0.3793010711669922,
+        "forehead_elasticity_Q3": 0.11495879292488098
+      }
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 2,
+        "bbox": [
+          966,
+          1184,
+          1226,
+          1529
+        ]
+      },
+      "annotations": {
+        "glabellus_wrinkle": 2
+      },
+      "equipment": null
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 3,
+        "bbox": [
+          196,
+          1420,
+          412,
+          1844
+        ]
+      },
+      "annotations": {
+        "l_perocular_wrinkle": 1
+      },
+      "equipment": {
+        "l_perocular_wrinkle_Ra": 17.56133270263672,
+        "l_perocular_wrinkle_Rmax": 133.962890625,
+        "l_perocular_wrinkle_Rt": 141.50149536132812,
+        "l_perocular_wrinkle_Rz=Rtm": 101.17037963867188,
+        "l_perocular_wrinkle_Rp": 68.39075469970703,
+        "l_perocular_wrinkle_Rv": 72.95787048339844,
+        "l_perocular_wrinkle_Rq": 22.00728988647461,
+        "l_perocular_wrinkle_R3z": 57.13051223754883
+      }
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 4,
+        "bbox": [
+          1776,
+          1368,
+          1976,
+          1823
+        ]
+      },
+      "annotations": {
+        "r_perocular_wrinkle": 1
+      },
+      "equipment": {
+        "r_perocular_wrinkle_Ra": 18.416234970092773,
+        "r_perocular_wrinkle_Rmax": 139.0359649658203,
+        "r_perocular_wrinkle_Rt": 146.53623962402344,
+        "r_perocular_wrinkle_Rz=Rtm": 105.07667541503906,
+        "r_perocular_wrinkle_Rp": 70.42969512939453,
+        "r_perocular_wrinkle_Rv": 75.80799102783203,
+        "r_perocular_wrinkle_Rq": 23.041881561279297,
+        "r_perocular_wrinkle_R3z": 59.53483200073242
+      }
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 5,
+        "bbox": [
+          277,
+          1693,
+          828,
+          2381
+        ]
+      },
+      "annotations": {
+        "l_cheek_pore": 2,
+        "l_cheek_pigmentation": 3
+      },
+      "equipment": {
+        "l_cheek_moisture": 65.81470489501953,
+        "l_cheek_elasticity_R0": 0.2833738923072815,
+        "l_cheek_elasticity_R1": 0.11467790603637695,
+        "l_cheek_elasticity_R2": 0.5968532562255859,
+        "l_cheek_elasticity_R3": 0.3210259974002838,
+        "l_cheek_elasticity_R4": 0.16739165782928467,
+        "l_cheek_elasticity_R5": 0.5252589583396912,
+        "l_cheek_elasticity_R6": 0.5997928380966187,
+        "l_cheek_elasticity_R7": 0.31722187995910645,
+        "l_cheek_elasticity_R8": 0.16407127678394318,
+        "l_cheek_elasticity_R9": 0.03833525627851486,
+        "l_cheek_elasticity_Q0": 55.87617492675781,
+        "l_cheek_elasticity_Q1": 0.5206356644630432,
+        "l_cheek_elasticity_Q2": 0.40594106912612915,
+        "l_cheek_elasticity_Q3": 0.11567506194114685,
+        "l_cheek_pore": 753.0
+      }
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 6,
+        "bbox": [
+          1367,
+          1678,
+          1915,
+          2359
+        ]
+      },
+      "annotations": {
+        "r_cheek_pore": 2,
+        "r_cheek_pigmentation": 3
+      },
+      "equipment": {
+        "r_cheek_moisture": 66.2400131225586,
+        "r_cheek_elasticity_R0": 0.2718448042869568,
+        "r_cheek_elasticity_R1": 0.11435175687074661,
+        "r_cheek_elasticity_R2": 0.5857750177383423,
+        "r_cheek_elasticity_R3": 0.3098336458206177,
+        "r_cheek_elasticity_R4": 0.16635634005069733,
+        "r_cheek_elasticity_R5": 0.5309615731239319,
+        "r_cheek_elasticity_R6": 0.639276921749115,
+        "r_cheek_elasticity_R7": 0.3124990463256836,
+        "r_cheek_elasticity_R8": 0.15405960381031036,
+        "r_cheek_elasticity_R9": 0.03908398747444153,
+        "r_cheek_elasticity_Q0": 53.697120666503906,
+        "r_cheek_elasticity_Q1": 0.5116941928863525,
+        "r_cheek_elasticity_Q2": 0.4032365381717682,
+        "r_cheek_elasticity_Q3": 0.11197305470705032,
+        "r_cheek_pore": 753.0
+      }
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 7,
+        "bbox": [
+          744,
+          2452,
+          1460,
+          2695
+        ]
+      },
+      "annotations": {
+        "lip_dryness": 3
+      },
+      "equipment": null
+    },
+    {
+      "info": {
+        "filename": "0001_01_F.jpg",
+        "id": "0000",
+        "gender": "U",
+        "age": 30,
+        "date": "2024-01-01",
+        "skin_type": 0,
+        "sensitive": 0
+      },
+      "images": {
+        "device": 0,
+        "width": 2136,
+        "height": 3216,
+        "angle": 0,
+        "facepart": 8,
+        "bbox": [
+          333,
+          2550,
+          1845,
+          3106
+        ]
+      },
+      "annotations": {
+        "chin_sagging": 4
+      },
+      "equipment": {
+        "chin_moisture": 0.0,
+        "chin_elasticity_R0": 0.16348226368427277,
+        "chin_elasticity_R1": 0.09161564707756042,
+        "chin_elasticity_R2": 0.4703648090362549,
+        "chin_elasticity_R3": 0.20380663871765137,
+        "chin_elasticity_R4": 0.13886111974716187,
+        "chin_elasticity_R5": 0.5695322155952454,
+        "chin_elasticity_R6": 0.9284476041793823,
+        "chin_elasticity_R7": 0.2923198938369751,
+        "chin_elasticity_R8": 0.07486604154109955,
+        "chin_elasticity_R9": 0.04020030051469803,
+        "chin_elasticity_Q0": 33.555137634277344,
+        "chin_elasticity_Q1": 0.42642101645469666,
+        "chin_elasticity_Q2": 0.3563826382160187,
+        "chin_elasticity_Q3": 0.06775840371847153
+      }
+    }
+  ],
+  "detected_parts": [
+    {
+      "raw_part_name": "chin",
+      "class_name": "chin",
+      "confidence": 0.944344162940979,
+      "bbox_xyxy": [
+        332.5710144042969,
+        2550.197021484375,
+        1845.1925048828125,
+        3106.44482421875
+      ]
+    },
+    {
+      "raw_part_name": "right_cheek",
+      "class_name": "r_cheek",
+      "confidence": 0.9238908886909485,
+      "bbox_xyxy": [
+        1367.17626953125,
+        1678.281005859375,
+        1915.137451171875,
+        2359.093017578125
+      ]
+    },
+    {
+      "raw_part_name": "left_cheek",
+      "class_name": "l_cheek",
+      "confidence": 0.9147500991821289,
+      "bbox_xyxy": [
+        277.0008239746094,
+        1692.877197265625,
+        828.42431640625,
+        2381.33349609375
+      ]
+    },
+    {
+      "raw_part_name": "lips",
+      "class_name": "lips",
+      "confidence": 0.8671804666519165,
+      "bbox_xyxy": [
+        743.65185546875,
+        2451.857666015625,
+        1459.5181884765625,
+        2695.2880859375
+      ]
+    },
+    {
+      "raw_part_name": "forehead",
+      "class_name": "forehead",
+      "confidence": 0.8407184481620789,
+      "bbox_xyxy": [
+        433.5965881347656,
+        677.03564453125,
+        1685.0640869140625,
+        1209.31591796875
+      ]
+    },
+    {
+      "raw_part_name": "glabella",
+      "class_name": "glabella",
+      "confidence": 0.837626576423645,
+      "bbox_xyxy": [
+        965.7686767578125,
+        1184.0352783203125,
+        1226.2298583984375,
+        1528.9930419921875
+      ]
+    },
+    {
+      "raw_part_name": "right_eye",
+      "class_name": "r_eye",
+      "confidence": 0.8336652517318726,
+      "bbox_xyxy": [
+        1776.3424072265625,
+        1367.7679443359375,
+        1975.5849609375,
+        1823.20458984375
+      ]
+    },
+    {
+      "raw_part_name": "left_eye",
+      "class_name": "l_eye",
+      "confidence": 0.8026281595230103,
+      "bbox_xyxy": [
+        196.0708770751953,
+        1420.2996826171875,
+        411.7852783203125,
+        1843.798828125
+      ]
+    }
+  ]
+}

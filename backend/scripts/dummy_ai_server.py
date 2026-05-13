@@ -18,20 +18,24 @@ from contextlib import asynccontextmanager
 # Import Modular Engine
 try:
     from scripts.inference_engine import DinoInferenceEngine
+    from scripts.face_detector import FaceDetector
 except ImportError:
     # If run directly as 'python scripts/dummy_ai_server.py'
     from inference_engine import DinoInferenceEngine
+    from face_detector import FaceDetector
 
 # ===================================================================
 # Config & Paths
 # ===================================================================
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 BACKBONE_CKPT = os.path.join(SCRIPT_DIR, "dinov3_vits16plus_pretrain_lvd1689m-4057cbaa.pth")
-BASE_DIR = os.path.dirname(SCRIPT_DIR) 
+BASE_DIR = os.path.dirname(SCRIPT_DIR)
 HEADS_DIR = os.path.join(BASE_DIR, "ckpt_kfold_vits_part3")
+YOLO_CKPT = os.path.join(BASE_DIR, "model", "yolo_facecrop_best.pt")
 
-# Initialize Engine
+# Initialize Engines
 engine = DinoInferenceEngine(backbone_ckpt=BACKBONE_CKPT, heads_dir=HEADS_DIR)
+face_detector = FaceDetector(model_path=YOLO_CKPT)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,6 +43,8 @@ async def lifespan(app: FastAPI):
     success = engine.load_models()
     if not success:
         print("Warning: Failed to load models in DinoInferenceEngine.")
+    if not face_detector.load():
+        print("Warning: Failed to load YOLO face detector.")
     yield
 
 app = FastAPI(title="Modular AI Inference Server", version="0.2.0", lifespan=lifespan)
@@ -139,14 +145,25 @@ async def inference_skin(
 
     print(f"[ai-server] 수신 | filename={file.filename} size={len(content)}bytes")
 
-    # Actual Inference for left_eye
+    # 1) YOLO face-part detection → per-part bboxes
+    part_bboxes: dict = {}
+    if face_detector.model is not None:
+        try:
+            part_bboxes = face_detector.detect_best_per_part(image)
+        except Exception as e:
+            print(f"Error during face-part detection: {e}")
+
+    # 2) bbox for left_eye: caller override wins, else YOLO result
     bbox = None
     if bbox_left_eye:
         try:
             bbox = json.loads(bbox_left_eye)
-        except:
+        except Exception:
             print(f"Warning: Failed to parse bbox_left_eye: {bbox_left_eye}")
+    if bbox is None and "left_eye" in part_bboxes:
+        bbox = part_bboxes["left_eye"]["bbox_xyxy"]
 
+    # 3) Actual inference for left_eye
     eye_result = None
     if len(engine.heads) > 0:
         try:
@@ -154,10 +171,14 @@ async def inference_skin(
         except Exception as e:
             print(f"Error during eye inference: {e}")
 
-    # Construct Response
+    # 4) Construct response — attach detected bbox to each part
     parts = []
     for p in _MOCK_PARTS_TEMPLATE:
         new_p = p.copy()
+        det = part_bboxes.get(p["raw_part_name"])
+        if det is not None:
+            new_p["bbox_xyxy"] = det["bbox_xyxy"]
+            new_p["detection_confidence"] = det["confidence"]
         if p["raw_part_name"] == "left_eye" and eye_result:
             new_p.update(eye_result)
         parts.append(new_p)
@@ -166,6 +187,15 @@ async def inference_skin(
         "model_name": "skin_dinov3_ensemble_model",
         "model_version": "0.2.0",
         "parts": parts,
+        "detected_parts": [
+            {
+                "raw_part_name": name,
+                "class_name": d["class_name"],
+                "confidence": d["confidence"],
+                "bbox_xyxy": d["bbox_xyxy"],
+            }
+            for name, d in part_bboxes.items()
+        ],
     }
 
 @app.get("/health")
@@ -174,5 +204,6 @@ def health():
         "status": "ok", 
         "service": "ai-inference",
         "device": str(engine.device),
-        "models_loaded": len(engine.heads) > 0
+        "models_loaded": len(engine.heads) > 0,
+        "face_detector_loaded": face_detector.model is not None,
     }

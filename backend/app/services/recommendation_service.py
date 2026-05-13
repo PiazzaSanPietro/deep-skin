@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import session_access_denied, session_not_found
@@ -13,6 +15,9 @@ from app.schemas.recommendation import (
     RecommendationItem,
     RecommendationsResponse,
 )
+from app.services import recommendation_boost_service as boost_service
+
+logger = logging.getLogger(__name__)
 
 _SEVERITY_ORDER = {"normal": 0, "mild": 1, "moderate": 2, "severe": 3}
 
@@ -67,8 +72,17 @@ def generate_and_save(db: Session, session_id: int, user_id: int) -> None:
         if not rule:
             continue
 
+        categories, ingredients, care_tips = boost_service.apply_boost(
+            db=db,
+            session_id=session_id,
+            display_part_name=display_part_name,
+            categories=list(rule.recommend_categories or []),
+            ingredients=list(rule.recommend_ingredients or []),
+            care_tips=list(rule.care_tips or []),
+        )
+
         kept, excluded, exclusion_reason = _filter_ingredients(
-            rule.recommend_ingredients or [], allergy_keys, caution_keys
+            ingredients, allergy_keys, caution_keys
         )
 
         to_add.append(
@@ -81,11 +95,11 @@ def generate_and_save(db: Session, session_id: int, user_id: int) -> None:
                 issue_display_name=rule.issue_display_name,
                 severity=severity,
                 reason=rule.reason_template,
-                recommend_categories=rule.recommend_categories,
+                recommend_categories=categories,
                 recommend_ingredients=kept,
                 excluded_ingredients=excluded,
                 exclusion_reason=exclusion_reason,
-                care_tips=rule.care_tips,
+                care_tips=care_tips,
             )
         )
 

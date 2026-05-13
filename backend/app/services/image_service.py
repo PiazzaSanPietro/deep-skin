@@ -1,5 +1,7 @@
 import io
+import logging
 import uuid
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import UploadFile
@@ -17,11 +19,16 @@ from app.core.exceptions import (
     session_access_denied,
     session_not_found,
 )
+from app.models.ai_raw_response import AiRawResponse
 from app.models.analysis_session import AnalysisSession
+from app.models.skin_metric_value import SkinMetricValue
+from app.models.skin_part_detection import SkinPartDetection
 from app.models.skin_part_result import SkinPartResult
 from app.models.uploaded_image import UploadedImage
-from app.schemas.image_upload import ImageUploadResponse, InferenceResult
-from app.services import inference_service, recommendation_service
+from app.schemas.image_upload import ImageUploadResponse, InferenceResult, PartResult
+from app.services import inference_service, multivalue_parser, recommendation_service
+
+logger = logging.getLogger(__name__)
 
 _ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 _ALLOWED_MIME_TYPES = {"image/jpeg", "image/png"}
@@ -104,49 +111,20 @@ async def upload_image(
         _delete_file(file_path)
         raise
 
-    # 11. Mock 추론 → skin_part_results 저장 → 추천 생성
+    # 11. 모드 분기: inference + save + recommend
     try:
         image_record.upload_status = "processing"
         db.commit()
 
-        result: InferenceResult = inference_service.run_inference(
-            str(file_path),
-            session_id=session_id,
-            user_id=user_id,
-            image_id=image_record.id,
-        )
+        if settings.AI_INFERENCE_MODE == "multivalue":
+            result = _run_multivalue_mode(
+                db, session, image_record, session_id, user_id, str(file_path)
+            )
+        else:
+            result = _run_flat_mode(
+                db, session, image_record, session_id, user_id, str(file_path)
+            )
 
-        # 이 세션의 기존 이미지 기반 결과 삭제 (재업로드 중복 방지)
-        db.query(SkinPartResult).filter(
-            SkinPartResult.session_id == session_id,
-            SkinPartResult.image_id.is_not(None),
-        ).delete(synchronize_session=False)
-
-        # inference parts 전체 저장
-        for part in result.parts:
-            db.add(SkinPartResult(
-                session_id=session_id,
-                user_id=user_id,
-                image_id=image_record.id,
-                raw_part_name=part.raw_part_name,
-                display_part_name=part.display_part_name,
-                metric_name=part.metric_name,
-                metric_display_name=part.metric_display_name,
-                issue_type=part.issue_type,
-                grade_value=part.grade_value,
-                predicted_value=part.predicted_value,
-                measured_value=part.measured_value,
-                severity=part.severity,
-                confidence_score=part.confidence_score,
-                model_name=result.model_name,
-                model_version=result.model_version,
-            ))
-
-        image_record.upload_status = "processed"
-        session.status = "completed"
-        db.commit()
-
-        recommendation_service.generate_and_save(db, session_id, user_id)
     except Exception as exc:
         image_record.upload_status = "failed"
         image_record.failure_reason = str(exc)
@@ -166,6 +144,134 @@ async def upload_image(
         upload_status=image_record.upload_status,
         session_status=session.status,
         inference_result=result,
+    )
+
+
+# ── Flat mode (mock / remote) ─────────────────────────────────────────────────
+
+def _run_flat_mode(
+    db: Session,
+    session: AnalysisSession,
+    image_record: UploadedImage,
+    session_id: int,
+    user_id: int,
+    file_path: str,
+) -> InferenceResult:
+    result: InferenceResult = inference_service.run_inference(
+        file_path,
+        session_id=session_id,
+        user_id=user_id,
+        image_id=image_record.id,
+    )
+
+    # 재업로드 대비: 이 세션의 기존 이미지 기반 결과 삭제
+    db.query(SkinPartResult).filter(
+        SkinPartResult.session_id == session_id,
+        SkinPartResult.image_id.is_not(None),
+    ).delete(synchronize_session=False)
+
+    for part in result.parts:
+        db.add(SkinPartResult(
+            session_id=session_id,
+            user_id=user_id,
+            image_id=image_record.id,
+            raw_part_name=part.raw_part_name,
+            display_part_name=part.display_part_name,
+            metric_name=part.metric_name,
+            metric_display_name=part.metric_display_name,
+            issue_type=part.issue_type,
+            grade_value=part.grade_value,
+            predicted_value=part.predicted_value,
+            measured_value=part.measured_value,
+            severity=part.severity,
+            confidence_score=part.confidence_score,
+            model_name=result.model_name,
+            model_version=result.model_version,
+        ))
+
+    image_record.upload_status = "processed"
+    session.status = "completed"
+    session.analyzed_at = datetime.utcnow()
+    db.commit()
+
+    recommendation_service.generate_and_save(db, session_id, user_id)
+    return result
+
+
+# ── MultiValue mode ───────────────────────────────────────────────────────────
+
+def _run_multivalue_mode(
+    db: Session,
+    session: AnalysisSession,
+    image_record: UploadedImage,
+    session_id: int,
+    user_id: int,
+    file_path: str,
+) -> InferenceResult:
+    payload = inference_service.run_multivalue_inference(
+        file_path,
+        session_id=session_id,
+        user_id=user_id,
+        image_id=image_record.id,
+    )
+
+    parsed = multivalue_parser.parse_multivalue_response(
+        payload,
+        session_id=session_id,
+        user_id=user_id,
+        image_id=image_record.id,
+    )
+
+    if not parsed["part_results"]:
+        raise ValueError("multivalue 파서 결과 skin_part_results가 없습니다")
+
+    # 재업로드 대비: 이 세션의 기존 multivalue 결과 모두 삭제
+    db.query(SkinPartResult).filter(
+        SkinPartResult.session_id == session_id,
+        SkinPartResult.image_id.is_not(None),
+    ).delete(synchronize_session=False)
+    db.query(AiRawResponse).filter(
+        AiRawResponse.session_id == session_id,
+    ).delete(synchronize_session=False)
+    db.query(SkinMetricValue).filter(
+        SkinMetricValue.session_id == session_id,
+    ).delete(synchronize_session=False)
+    db.query(SkinPartDetection).filter(
+        SkinPartDetection.session_id == session_id,
+    ).delete(synchronize_session=False)
+
+    db.add(parsed["raw_response"])
+    db.add_all(parsed["part_results"])
+    db.add_all(parsed["metric_values"])
+    db.add_all(parsed["detections"])
+
+    image_record.upload_status = "processed"
+    session.status = "completed"
+    session.analyzed_at = datetime.utcnow()
+    db.commit()
+
+    recommendation_service.generate_and_save(db, session_id, user_id)
+
+    # API 응답용 InferenceResult 합성 (annotations 기반 part_results 사용)
+    raw_resp = parsed["raw_response"]
+    return InferenceResult(
+        model_name=raw_resp.model_name,
+        model_version=raw_resp.model_version,
+        parts=[
+            PartResult(
+                raw_part_name=pr.raw_part_name,
+                display_part_name=pr.display_part_name,
+                metric_name=pr.metric_name,
+                metric_display_name=pr.metric_display_name,
+                issue_type=pr.issue_type,
+                grade_value=pr.grade_value or 0,
+                predicted_value=pr.predicted_value,
+                measured_value=pr.measured_value,
+                severity=pr.severity,
+                confidence_score=pr.confidence_score,
+            )
+            for pr in parsed["part_results"]
+        ],
     )
 
 

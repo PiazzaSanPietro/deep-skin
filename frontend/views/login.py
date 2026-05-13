@@ -135,6 +135,9 @@ def _render_left(logo2: str, ic_ana: str, ic_sol: str, ic_prot: str):
 def _render_center():
 
     with st.container(key="login_panel"):
+        if st.session_state.get("_signup_flash"):
+            st.success(st.session_state.pop("_signup_flash"))
+
         with st.form("login_form", clear_on_submit=False):
             st.markdown("""
             <div style="text-align:center;margin-bottom:34px;">

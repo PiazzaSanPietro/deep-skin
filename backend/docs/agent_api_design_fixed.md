@@ -25,6 +25,8 @@ Authorization: Bearer <access_token>
 | PUT | `/users/me/profile` | Yes | `users.py` | 내 프로필 생성/수정 |
 | POST | `/analysis/sessions` | Yes | `analysis.py` | 분석 세션 생성 |
 | POST | `/analysis/sessions/{session_id}/images` | Yes | `images.py` | 이미지 업로드 및 분석 |
+| GET | `/analysis/metrics/trends` | Yes | `analysis.py` | 부위/지표별 측정값 추이 조회 (Phase 2-4 추가) |
+| GET | `/analysis/sessions/{session_id}/metrics` | Yes | `analysis.py` | 상세 측정값 조회 (Phase 2-1 추가) |
 | GET | `/analysis/sessions/{session_id}/report` | Yes | `analysis.py` | 분석 리포트 조회 |
 | GET | `/analysis/reports/latest` | Yes | `analysis.py` | 현재 로그인 사용자의 최신 완료 리포트 조회 |
 | GET | `/recommendations/sessions/{session_id}` | Yes | `recommendations.py` | 추천 결과 조회 |
@@ -228,6 +230,90 @@ inference_result.parts[] 주요 필드:
 | `predicted_value` | float \| null | 이미지 기반 AI 모델 예측 회귀값. 없으면 null |
 | `measured_value` | float \| null | AI-Hub JSON 또는 장비 측정 기반 원본 수치. 없으면 null |
 | `severity` | string | UI 표시 및 추천 로직에 사용하는 심각도 |
+
+### GET `/analysis/metrics/trends`
+
+현재 로그인 사용자의 특정 부위/지표에 대한 세션별 측정값 추이를 반환합니다. Phase 2-4에서 추가됐습니다.
+
+Query parameters:
+
+| 파라미터 | 필수 | 설명 |
+|---|---|---|
+| `raw_part_name` | 필수 | 부위 원본명 (예: `forehead`, `left_cheek`) |
+| `metric_group` | 필수 | 지표 그룹 (예: `moisture`, `pore`, `elasticity`) |
+| `metric_name` | 필수 | 지표명 (예: `moisture`, `pore_count`, `R2`) |
+| `limit` | 선택 | 최대 조회 개수 (기본 10, 최대 50) |
+
+- `status=completed` 세션만 포함합니다.
+- `is_dummy=True` 지표는 제외합니다.
+- 최근 `limit`개를 가져와 `analyzed_at` 오름차순으로 정렬해 반환합니다.
+- 해당 데이터가 없으면 `trend=[]`를 반환합니다.
+
+Response `200`:
+
+```json
+{
+  "raw_part_name": "forehead",
+  "display_part_name": "이마",
+  "metric_group": "moisture",
+  "metric_name": "moisture",
+  "metric_key": "forehead_moisture",
+  "trend": [
+    {"session_id": 10, "analyzed_at": "2026-05-01T10:00:00", "value": 52.1},
+    {"session_id": 18, "analyzed_at": "2026-05-08T10:00:00", "value": 55.3},
+    {"session_id": 42, "analyzed_at": "2026-05-12T10:00:00", "value": 63.2}
+  ]
+}
+```
+
+데이터 없을 때:
+
+```json
+{
+  "raw_part_name": "forehead",
+  "display_part_name": null,
+  "metric_group": "moisture",
+  "metric_name": "moisture",
+  "metric_key": null,
+  "trend": []
+}
+```
+
+### GET `/analysis/sessions/{session_id}/metrics`
+
+`skin_metric_values` 상세 측정값을 부위별로 묶어 반환합니다. Phase 1-3 (multivalue 모드)에서 저장된 데이터를 조회합니다.
+
+- mock / remote flat 모드로 분석한 세션은 `parts=[]`를 반환합니다.
+- dummy 값(예: `chin_moisture`)은 `is_dummy=true`와 함께 포함됩니다.
+- 다른 사용자의 세션은 404를 반환합니다.
+
+Response `200`:
+
+```json
+{
+  "session_id": 1,
+  "parts": [
+    {
+      "raw_part_name": "forehead",
+      "display_part_name": "이마",
+      "facepart": 1,
+      "metrics": [
+        {
+          "metric_group": "elasticity",
+          "metric_name": "R2",
+          "metric_key": "forehead_elasticity_R2",
+          "value": 0.832,
+          "value_type": "ratio",
+          "unit": null,
+          "is_dummy": false,
+          "dummy_reason": null,
+          "source": "multivalue_inference"
+        }
+      ]
+    }
+  ]
+}
+```
 
 ### GET `/analysis/sessions/{session_id}/report`
 

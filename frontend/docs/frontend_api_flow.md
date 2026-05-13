@@ -299,7 +299,97 @@ API 응답이 401이면 다음 처리한다.
 3. “로그인이 만료되었습니다. 다시 로그인해주세요.” 표시
 ```
 
-### 8. 추천 결과 조회 (보조 API)
+### 8. 상세 측정값 조회 (Phase 2-2 추가)
+
+#### API
+
+```http
+GET /analysis/sessions/{session_id}/metrics
+```
+
+#### 헤더
+
+```http
+Authorization: Bearer <access_token>
+```
+
+#### 호출 기준
+
+리포트 조회(7번)가 완료되어 `session_id`와 `access_token`이 있는 경우에만 호출한다.
+
+```text
+report API 성공 + session_id 확인
+  → metrics API 호출 (소프트 실패 허용)
+     성공 + parts 있음: 상세 측정값 영역 표시
+     성공 + parts=[]  : 상세 측정값 영역 숨김 (flat 세션)
+     실패(404/5xx)    : 기존 리포트는 유지, 측정값 영역만 숨김
+```
+
+#### 응답 주요 구조
+
+```json
+{
+  "session_id": 1,
+  "parts": [
+    {
+      "raw_part_name": "forehead",
+      "display_part_name": "이마",
+      "facepart": 1,
+      "metrics": [
+        {
+          "metric_group": "elasticity",
+          "metric_name": "R2",
+          "metric_key": "forehead_elasticity_R2",
+          "value": 0.832,
+          "value_type": "ratio",
+          "is_dummy": false,
+          "dummy_reason": null,
+          "source": "model"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### 예외 처리
+
+| 상황 | 처리 |
+|---|---|
+| metrics API 404 | 상세 측정값 영역 숨김 |
+| metrics API 401 | 기존 인증 처리 흐름 유지 |
+| metrics API 500 | 기존 리포트 유지, 측정값 영역만 숨김 |
+| `parts=[]` | 상세 측정값 없음으로 처리 (오류 메시지 없음) |
+
+### 9. 피부 측정값 추이 조회 (Phase 2-4 추가)
+
+#### API
+
+```http
+GET /analysis/metrics/trends?raw_part_name=...&metric_group=...&metric_name=...&limit=10
+```
+
+#### 헤더
+
+```http
+Authorization: Bearer <access_token>
+```
+
+#### 호출 기준
+
+리포트 화면에서 "추이 그래프 보기" 토글을 켤 때 한 번 호출한다. `st.session_state`에 결과를 캐시해 재호출을 방지한다. 기본 8개 지표에 대해 각각 호출한다.
+
+전문가 모드가 켜져 있으면 기본 8개 차트 아래에 **지표 직접 선택** 섹션이 추가로 표시된다 (Phase 3-B). "추이 조회" 버튼 클릭 시 동일 API를 사용자가 선택한 `raw_part_name` / `metric_group` / `metric_name` 조합으로 호출한다. 결과는 `st.session_state[f"expert_trend_chart_{session_id}"]`에 캐시한다.
+
+#### 예외 처리
+
+| 상황 | 처리 |
+|---|---|
+| API 실패 | 해당 지표 차트 숨김 (기존 리포트 유지) |
+| `trend=[]` | "분석 데이터가 없습니다." 안내 |
+| trend 1개 | 현재 측정값 표시 + "2회 이상 분석 필요" 안내 |
+
+### 10. 추천 결과 조회 (보조 API)
 
 > 기본 리포트 화면은 7번 API만으로 구성한다. 이 API는 추천 결과를 별도로 확인하거나 디버깅할 때만 사용한다.
 

@@ -17,33 +17,75 @@
 | Mode | 동작 |
 |---|---|
 | `mock` | 외부 서버 호출 없이 `_run_mock()`의 고정 결과 반환 |
-| `remote` | `AI_INFERENCE_URL`로 multipart/form-data HTTP 요청 |
+| `remote` | `AI_INFERENCE_URL`로 multipart/form-data HTTP 요청 (레거시 단일값 서버) |
+| `multivalue` | `AI_MULTIVALUE_INFERENCE_URL`로 요청. DINOv3+YOLO 실제 추론. **현재 운영 모드** |
 
 환경 변수:
 
 ```env
-AI_INFERENCE_MODE=mock
+AI_INFERENCE_MODE=multivalue
 AI_INFERENCE_URL=http://localhost:9000/inference/skin
+AI_MULTIVALUE_INFERENCE_URL=http://localhost:9001/inference/skin
 AI_INFERENCE_TIMEOUT_SECONDS=30
 ```
 
 ---
 
-## Backend 처리 흐름
+## Backend 처리 흐름 (multivalue 모드)
 
 ```text
 POST /analysis/sessions/{session_id}/images
   -> 이미지 검증 및 저장
   -> uploaded_images row 생성
-  -> inference_service.run_inference(image_path, session_id, user_id, image_id)
-  -> InferenceResult 검증 (Pydantic)
-  -> skin_part_results 저장 (predicted_value / measured_value 포함)
+  -> inference_service.run_multivalue_inference()
+      -> multivalue_ai_server :9001 POST /inference/skin
+      -> YOLO 부위 검출 (검출 실패 부위는 전체 이미지 bbox 사용)
+      -> DINOv3 + MultiTaskSkinModel 추론
+  -> multivalue_parser.parse_multivalue_response()
+      -> skin_part_results 저장 (annotations → 등급값)
+      -> skin_metric_values 저장 (equipment → 연속 측정값)
+      -> skin_part_detections 저장 (YOLO bbox)
+      -> ai_raw_responses 저장 (원본 JSON)
   -> recommendation_service.generate_and_save()
 ```
 
 ---
 
-## Remote AI 요청
+## MultiValue AI 서버 (현재 운영)
+
+### 서버 실행
+
+```bash
+cd backend
+python -m uvicorn scripts.multivalue_ai_server:app --port 9001
+```
+
+### YOLO 부위 검출 fallback
+
+`face_detector.detect_best_per_part()` 호출 결과 미검출 부위는 전체 이미지 `(0, 0, W, H)` bbox를 사용해 inference를 강제 실행합니다. 이를 통해 모든 facepart의 등급값/측정값이 항상 DB에 저장됩니다.
+
+- `bbox_source = "yolo"` — YOLO가 실제 검출한 부위
+- `bbox_source = "full_image_fallback"` — 미검출로 전체 이미지 crop 사용
+
+### 지원 라벨 (LABEL_REGISTRY 기준)
+
+| facepart | 등급 라벨 | 연속 측정 라벨 |
+|---|---|---|
+| 0 (전체) | — | acne_count, pigmentation_count |
+| 1 (이마) | forehead_pigmentation, forehead_wrinkle | moisture, elasticity R0-R9 Q0-Q3 |
+| 2 (미간) | glabellus_wrinkle | — |
+| 3 (왼눈가) | l_perocular_wrinkle | Ra, Rmax, Rt, Rz, Rp, Rv, Rq, R3z |
+| 4 (오른눈가) | r_perocular_wrinkle | Ra, Rmax, Rt, Rz, Rp, Rv, Rq, R3z |
+| 5 (왼볼) | l_cheek_pore, l_cheek_pigmentation | moisture, elasticity R0-R9 Q0-Q3, pore_count |
+| 6 (오른볼) | r_cheek_pore, r_cheek_pigmentation | moisture, elasticity R0-R9 Q0-Q3, pore_count |
+| 7 (입술) | lip_dryness | — |
+| 8 (턱) | chin_sagging | elasticity R0-R9 Q0-Q3 |
+
+> **chin_moisture 제거**: 모델 학습 미포함 라벨로, AI 서버 응답 및 DB 저장 대상에서 제외됨 (2026-05-13)
+
+---
+
+## Remote AI 요청 (레거시 단일값 서버)
 
 Endpoint:
 
