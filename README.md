@@ -37,15 +37,20 @@
 ## 🛠 System Architecture
 
 ```mermaid
-graph TD
-    A[Raw Image] --> B[YOLOv11 Detector]
-    B --> C{Face Parts Detected?}
-    C -- Yes --> D[Crop Face Parts]
-    C -- No --> E[Fallback: Global Analysis]
-    D --> F[DINOv3 Feature Extractor]
-    F --> G[Multi-task Skin Model]
-    G --> H[Results: Wrinkle, Pore, Pigment, etc.]
-    H --> I[JSON Response / Portfolio Report]
+graph LR
+    %% 스타일 정의 (색상 및 테두리)
+    classDef input fill:#f3e5f5,stroke:#ab47bc,stroke-width:2px,color:#000,rx:10px,ry:10px;
+    classDef process fill:#e3f2fd,stroke:#42a5f5,stroke-width:2px,color:#000,rx:5px,ry:5px;
+    classDef ai fill:#e8f5e9,stroke:#66bb6a,stroke-width:2px,color:#000;
+    classDef output fill:#fff8e1,stroke:#ffa000,stroke-width:2px,color:#000;
+
+    %% 노드 정의 및 연결
+    A([📸 Raw Image]):::input --> B[🎯 YOLOv11 Detector]:::process
+    B --> D[✂️ Crop Face Parts]:::process
+    D --> F{{🧠 DINOv3 Extractor}}:::ai
+    F --> G{{⚙️ Multi-task Skin Model}}:::ai
+    G --> H[/"📊 Analysis Results<br>Wrinkle, Pore, Pigment"/]:::output
+    H --> I[("📄 JSON & Portfolio Report")]:::output
 ```
 
 ---
